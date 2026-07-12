@@ -1,0 +1,55 @@
+# CORRECT RESULT SEQUENCE — Station 5 / Game 980
+# Source: User-provided raw data (corrected from OCR errors)
+# Date: 2026-07-12
+# Total: 34 numbers (continuing...)
+
+# Batch A (confirmed correct):
+5
+14
+24
+31
+36
+
+# Batch B (position 7 corrected):
+6
+14
+
+# New raw data (replaces everything after position 7):
+33
+0
+11
+12
+19
+11
+30
+29
+2
+14
+24
+16
+28
+10
+11
+30
+15
+11
+10
+22
+17
+23
+15
+18
+16
+0
+27
+
+# === ERRORS IN MY ORIGINAL OCR EXTRACTION ===
+# Position 7: I said 19 → actual 14 (OCR confused 14↔19 on glossy screen)
+# Position 8: I said 4 → actual 33 (glare merged digits)
+# Position 9: I said 21 → actual 0
+# Position 10: I said 32 → actual 11
+# Position 11: I said 26 → actual 12
+# Positions 12+: completely garbled by screen reflection
+# The horizontal result strip has small digits with high gloss reflection
+# causing digit merging and misreads particularly on round shapes (0,6,8,9)
+# and similar-looking digits (14↔19, 11↔4, 21↔12)
