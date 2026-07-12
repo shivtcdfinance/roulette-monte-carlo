@@ -22,6 +22,7 @@
   --gold: #f59e0b;
   --accent: #3b82f6;
   --accent-hover: #2563eb;
+  --purple: #a855f7;
 }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -88,7 +89,6 @@ body {
 .btn-danger { background: var(--red); color: white; }
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 
-/* Stats Cards */
 .stat-card { text-align: center; padding: 16px; }
 .stat-value { font-size: 32px; font-weight: 700; line-height: 1.2; }
 .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -97,25 +97,22 @@ body {
 .stat-green .stat-value { color: var(--green-bright); }
 .stat-gold .stat-value { color: var(--gold); }
 
-/* Percentile Bars */
 .percentile-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
 .percentile-bar .label { width: 40px; color: var(--text-dim); text-align: right; }
 .percentile-bar .track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .percentile-bar .fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
 .percentile-bar .val { width: 60px; text-align: right; font-weight: 600; font-size: 12px; }
 
-/* Data Input Grid */
 .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .data-cell { text-align: center; padding: 6px 4px; background: var(--surface2); border-radius: 4px; font-size: 12px; }
 .data-cell .num { font-weight: 600; font-size: 11px; }
 .data-cell .count { font-size: 11px; color: var(--text-dim); }
 .data-cell input { width: 100%; text-align: center; background: transparent; border: 1px solid transparent; color: var(--text); font-size: 11px; padding: 2px; border-radius: 3px; }
 .data-cell input:focus { border-color: var(--accent); outline: none; background: rgba(59,130,246,0.1); }
-.cell-red { border-left: 2px solid var(--red); }
-.cell-black { border-left: 2px solid #475569; }
-.cell-green { border-left: 2px solid var(--green); }
+.cell-red { border-left: 3px solid var(--red); }
+.cell-black { border-left: 3px solid #475569; }
+.cell-green { border-left: 3px solid var(--green); }
 
-/* Results Panel */
 .result-recommendation {
   background: linear-gradient(135deg, #1a2332, #0f172a);
   border: 1px solid var(--gold);
@@ -139,9 +136,7 @@ body {
 .result-item .value { font-size: 18px; font-weight: 700; margin-top: 2px; }
 
 .chart-container { height: 280px; margin-top: 12px; }
-.chart-container-sm { height: 200px; margin-top: 8px; }
 
-/* Strategy comparison table */
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { text-align: left; padding: 8px 10px; color: var(--text-dim); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
 td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
@@ -149,7 +144,6 @@ tr:hover td { background: rgba(59,130,246,0.05); }
 .best-row td { background: rgba(16,185,129,0.08); }
 .best-row td:first-child { border-left: 2px solid var(--green-bright); }
 
-/* Results history log */
 .log-container { max-height: 300px; overflow-y: auto; }
 .log-entry { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
 .log-entry .time { color: var(--text-dim); margin-right: 8px; }
@@ -157,7 +151,6 @@ tr:hover td { background: rgba(59,130,246,0.05); }
 .log-entry .prob { color: var(--green-bright); }
 .log-entry .ev { color: var(--accent); }
 
-/* Chi-squared analysis */
 .analysis-row { display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .analysis-row .metric { font-size: 13px; flex: 1; }
 .analysis-row .status { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
@@ -173,24 +166,50 @@ tr:hover td { background: rgba(59,130,246,0.05); }
 .bias-under { background: rgba(59,130,246,0.1); }
 .bias-normal { background: var(--surface2); }
 
-/* Sequence input */
-textarea { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: monospace; font-size: 12px; resize: vertical; min-height: 60px; }
-textarea:focus { outline: none; border-color: var(--accent); }
-.help-text { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+/* ===== BAYESIAN TABLE ===== */
+.bayes-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.bayes-controls label { font-size: 12px; color: var(--text-dim); }
+.bayes-controls select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+.bayes-controls select:focus { border-color: var(--accent); outline: none; }
+.bayes-info { font-size: 12px; color: var(--text-dim); background: var(--surface2); padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid var(--purple); }
+.bayes-info code { color: var(--gold); font-weight: 600; }
 
-/* Preset buttons */
+.bayes-table-wrap { max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.bayes-table-wrap table { font-size: 12px; }
+.bayes-table-wrap th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.bayes-table-wrap td { font-variant-numeric: tabular-nums; }
+
+td.num-colour { font-weight: 700; }
+.num-red { color: var(--red); }
+.num-black { color: #94a3b8; }
+.num-green { color: var(--green-bright); }
+
+.bayes-bar { display: inline-block; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+.bayes-ev-pos { color: var(--green-bright); }
+.bayes-ev-neg { color: var(--red); }
+
+.top3-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 700;
+}
+.badge-1 { background: var(--gold); color: #000; }
+.badge-2 { background: #94a3b8; color: #000; }
+.badge-3 { background: #78350f; color: var(--gold); }
+
 .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .preset-btn { padding: 4px 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
 .preset-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(59,130,246,0.1); }
 .preset-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(245,158,11,0.1); }
 
-/* Scrollbar */
+textarea { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: monospace; font-size: 12px; resize: vertical; min-height: 60px; }
+textarea:focus { outline: none; border-color: var(--accent); }
+.help-text { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
-/* Loading */
 .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
 .loading-overlay.show { display: flex; }
 .loading-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; text-align: center; }
@@ -201,6 +220,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
 .mb-12 { margin-bottom: 12px; }
 .text-center { text-align: center; }
 .text-dim { color: var(--text-dim); }
+.flex { display: flex; gap: 12px; align-items: center; }
 
 @media (max-width: 1024px) {
   .grid-2 { grid-template-columns: 1fr; }
@@ -218,14 +238,15 @@ textarea:focus { outline: none; border-color: var(--accent); }
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-box">
     <div class="spinner"></div>
-    <div style="font-size:14px;color:var(--text-dim)">Running Monte Carlo simulations...<br><span id="loadingStatus" style="font-size:12px;color:var(--gold);margin-top:8px;display:block"></span></div>
+    <div style="font-size:14px;color:var(--text-dim)">Running Monte Carlo simulations...<br>
+    <span id="loadingStatus" style="font-size:12px;color:var(--gold);margin-top:8px;display:block"></span></div>
   </div>
 </div>
 
 <header class="header">
   <div>
     <h1>🎲 <span>Monte Carlo</span> Roulette</h1>
-    <div class="subtitle">Optimal betting decision engine · probability-based simulation</div>
+    <div class="subtitle">Bayesian decision engine · probability-based simulation · per-number analysis</div>
   </div>
   <div style="font-size:12px;color:var(--text-dim)">
     <span id="engineStatus">Engine ready</span>
@@ -234,28 +255,25 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 <div class="container">
 
-<!-- Top Stats -->
 <div class="grid-3" id="quickStats">
   <div class="card stat-card stat-red">
     <div class="stat-value" id="displayRed">0</div>
-    <div class="stat-label">Red %</div>
+    <div class="stat-label">Red % (observed)</div>
   </div>
   <div class="card stat-card stat-black">
     <div class="stat-value" id="displayBlack">0</div>
-    <div class="stat-label">Black %</div>
+    <div class="stat-label">Black % (observed)</div>
   </div>
   <div class="card stat-card stat-green">
     <div class="stat-value" id="displayGreen">0</div>
-    <div class="stat-label">Green (Zero) %</div>
+    <div class="stat-label">Green % (observed)</div>
   </div>
 </div>
 
-<!-- Main Grid -->
 <div class="grid-2">
 
-<!-- LEFT: Data Input -->
+<!-- LEFT: Input -->
 <div>
-  <!-- Game Config -->
   <div class="card mb-12">
     <div class="card-title">🎯 Game Configuration</div>
     <div class="form-row">
@@ -273,143 +291,94 @@ textarea:focus { outline: none; border-color: var(--accent); }
     </div>
   </div>
 
-  <!-- Manual Counts -->
   <div class="card mb-12">
-    <div class="card-title">📊 Observed Data — Enter Counts</div>
+    <div class="card-title">📊 Observed Counts (per number)</div>
     <div class="presets">
-      <button class="preset-btn active" onclick="loadPreset('fromImage')">From Your Image</button>
-      <button class="preset-btn" onclick="loadPreset('fair')">Fair Wheel</button>
-      <button class="preset-btn" onclick="loadPreset('redBias')">Red Bias</button>
-      <button class="preset-btn" onclick="loadPreset('zeroBias')">Zero Bias</button>
-      <button class="preset-btn" onclick="loadPreset('random')">Random</button>
+      <button class="preset-btn active" onclick="loadPreset('fromImage',this)">📷 From Your Image</button>
+      <button class="preset-btn" onclick="loadPreset('fair',this)">Fair</button>
+      <button class="preset-btn" onclick="loadPreset('redBias',this)">Red Bias</button>
+      <button class="preset-btn" onclick="loadPreset('zeroBias',this)">Zero Bias</button>
+      <button class="preset-btn" onclick="loadPreset('random',this)">Random</button>
     </div>
     <div class="data-grid" id="numberGrid"></div>
   </div>
 
-  <!-- Quick Aggregate Input -->
   <div class="card mb-12">
-    <div class="card-title">⚡ Quick Aggregate Input</div>
+    <div class="card-title">⚡ Quick Aggregate</div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Red Count</label>
-        <input type="number" id="aggRed" value="51" min="0" max="10000">
-      </div>
-      <div class="form-group">
-        <label>Black Count</label>
-        <input type="number" id="aggBlack" value="44" min="0" max="10000">
-      </div>
+      <div class="form-group"><label>Red Count</label><input type="number" id="aggRed" value="51" min="0"></div>
+      <div class="form-group"><label>Black Count</label><input type="number" id="aggBlack" value="44" min="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Zero(s) Count</label>
-        <input type="number" id="aggGreen" value="5" min="0" max="10000">
-      </div>
-      <div class="form-group">
-        <label>Even / Odd (optional)</label>
-        <input type="text" id="aggEvenOdd" placeholder="e.g. 48, 47">
-      </div>
+      <div class="form-group"><label>Zero(s) Count</label><input type="number" id="aggGreen" value="5" min="0"></div>
+      <div class="form-group"><label>Even / Odd (optional)</label><input type="text" id="aggEvenOdd" placeholder="e.g. 48,47"></div>
     </div>
     <div class="form-row">
+      <div class="form-group"><label>Low (1-18) / High (19-36)</label><input type="text" id="aggLowHigh" placeholder="e.g. 46,49"></div>
       <div class="form-group">
-        <label>Low (1-18) / High (19-36)</label>
-        <input type="text" id="aggLowHigh" placeholder="e.g. 46, 49">
-      </div>
-      <div class="form-group">
-        <label style="visibility:hidden">spacer</label>
-        <button class="btn btn-outline" onclick="applyAggregate()" style="width:100%">Apply Aggregates → Distribute</button>
+        <label style="visibility:hidden">x</label>
+        <button class="btn btn-outline" onclick="applyAggregate()" style="width:100%">Apply → Distribute</button>
       </div>
     </div>
   </div>
 
-  <!-- Results Sequence -->
   <div class="card mb-12">
-    <div class="card-title">📋 Result Sequence (Optional — overrides counts if provided)</div>
-    <textarea id="sequenceInput" placeholder="Paste a sequence of results. Examples:
-&#10;Numbers: 0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5
-&#10;Or colours: R,B,B,R,R,R,B,R,B,B,R,R,B,R,B,B,R,R,R,B"></textarea>
-    <div class="help-text">Paste numbers (0-36) or colours (R/B/G) separated by comma, space, or newline</div>
+    <div class="card-title">📋 Result Sequence (optional — overrides counts)</div>
+    <textarea id="sequenceInput" placeholder="Paste a sequence: numbers or R/B colours separated by comma or space&#10;e.g. 0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5&#10;e.g. R,B,B,R,R,R,B,R,B,B,R,R,B,R,B,B,R,R,R,B"></textarea>
+    <div class="help-text">Numbers (0-36) or colours (R/B/G) separated by comma, space, or newline</div>
   </div>
 
-  <!-- Bet Parameters -->
   <div class="card mb-12">
     <div class="card-title">💰 Betting Parameters</div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Starting Bankroll (€)</label>
-        <input type="number" id="bankroll" value="100" min="1" step="10">
-      </div>
-      <div class="form-group">
-        <label>Expected Iterations (spins)</label>
-        <input type="number" id="iterations" value="50" min="1" max="100000">
-      </div>
+      <div class="form-group"><label>Starting Bankroll (€)</label><input type="number" id="bankroll" value="100" min="1" step="10"></div>
+      <div class="form-group"><label>Expected Iterations</label><input type="number" id="iterations" value="50" min="1" max="100000"></div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>Bet Type</label>
         <select id="betType">
-          <option value="red">Red</option>
-          <option value="black">Black</option>
-          <option value="even">Even</option>
-          <option value="odd">Odd</option>
-          <option value="low">Low (1-18)</option>
-          <option value="high">High (19-36)</option>
-          <option value="dozen1">1st Dozen (1-12)</option>
-          <option value="dozen2">2nd Dozen (13-24)</option>
-          <option value="dozen3">3rd Dozen (25-36)</option>
-          <option value="straight">Straight (single number)</option>
+          <option value="red">Red</option><option value="black">Black</option>
+          <option value="even">Even</option><option value="odd">Odd</option>
+          <option value="low">Low (1-18)</option><option value="high">High (19-36)</option>
+          <option value="dozen1">1st Dozen</option><option value="dozen2">2nd Dozen</option><option value="dozen3">3rd Dozen</option>
+          <option value="straight">Straight (pick number)</option>
         </select>
       </div>
       <div class="form-group" id="straightNumberGroup" style="display:none">
-        <label>Number</label>
-        <select id="straightNumber">
-          <option value="0">0</option>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-          <option value="13">13</option><option value="14">14</option><option value="15">15</option>
-          <option value="16">16</option><option value="17">17</option><option value="18">18</option>
-          <option value="19">19</option><option value="20">20</option><option value="21">21</option>
-          <option value="22">22</option><option value="23">23</option><option value="24">24</option>
-          <option value="25">25</option><option value="26">26</option><option value="27">27</option>
-          <option value="28">28</option><option value="29">29</option><option value="30">30</option>
-          <option value="31">31</option><option value="32">32</option><option value="33">33</option>
-          <option value="34">34</option><option value="35">35</option><option value="36">36</option>
-        </select>
+        <label>Pick Number</label>
+        <select id="straightNumber">${[...Array(37).keys()].map(n => `<option value="${n}">${n}</option>`).join('')}</select>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Bet Amount / Strategy</label>
-        <select id="betStrategy" onchange="toggleBetAmount()">
-          <option value="flat">Flat Bet (fixed amount)</option>
+        <label>Strategy</label>
+        <select id="betStrategy">
+          <option value="flat">Flat Bet (fixed)</option>
           <option value="proportional">Proportional (% of bankroll)</option>
           <option value="kelly">Kelly Criterion</option>
           <option value="martingale">Martingale</option>
           <option value="fibonacci">Fibonacci</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Bet Unit</label>
-        <input type="number" id="betAmount" value="5" min="0.5" step="0.5">
-      </div>
+      <div class="form-group"><label id="betAmountLabel">Bet Unit (€)</label><input type="number" id="betAmount" value="5" min="0.5" step="0.5"></div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label>MC Trials</label>
         <select id="mcTrials">
           <option value="1000">1,000 (fast)</option>
-          <option value="10000">10,000 (standard)</option>
+          <option value="10000">10,000 (std)</option>
           <option value="50000">50,000 (balanced)</option>
-          <option value="100000" selected>100,000 (recommended)</option>
+          <option value="100000" selected>100,000 (best)</option>
           <option value="500000">500,000 (accurate)</option>
           <option value="1000000">1,000,000 (precise)</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Scan All Bet Types</label>
+        <label>Scan All Bets</label>
         <select id="scanAll">
-          <option value="true">Yes — find optimal bet</option>
+          <option value="true">Yes — find optimal</option>
           <option value="false" selected>No — test selected only</option>
         </select>
       </div>
@@ -417,7 +386,6 @@ textarea:focus { outline: none; border-color: var(--accent); }
     <button class="btn btn-primary mt-12" onclick="runSimulation()" id="runBtn">▶ Run Monte Carlo Simulation</button>
   </div>
 
-  <!-- Session Log -->
   <div class="card">
     <div class="card-title">📝 Session Log</div>
     <div class="log-container" id="logContainer">
@@ -428,7 +396,6 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 <!-- RIGHT: Results -->
 <div>
-  <!-- Recommendation -->
   <div class="card mb-12">
     <div class="card-title">🎯 Optimal Decision</div>
     <div class="result-recommendation" id="recommendationBox">
@@ -452,35 +419,65 @@ textarea:focus { outline: none; border-color: var(--accent); }
     </div>
   </div>
 
-  <!-- Charts Tabs -->
   <div class="card mb-12">
     <div class="tabs" id="chartTabs">
-      <button class="tab active" onclick="switchChart('distribution', this)">Distribution</button>
-      <button class="tab" onclick="switchChart('cumulative', this)">Cumulative</button>
-      <button class="tab" onclick="switchChart('risk', this)">Risk Profile</button>
+      <button class="tab active" onclick="switchChart('distribution',this)">Distribution</button>
+      <button class="tab" onclick="switchChart('cumulative',this)">Cumulative</button>
+      <button class="tab" onclick="switchChart('risk',this)">Risk Profile</button>
     </div>
-    <div class="chart-container" id="chartContainer">
-      <canvas id="mainChart"></canvas>
-    </div>
+    <div class="chart-container"><canvas id="mainChart"></canvas></div>
   </div>
 
-  <!-- Percentiles -->
   <div class="card mb-12">
     <div class="card-title">📐 Outcome Percentiles</div>
-    <div id="percentileBars">
-      <div class="text-dim" style="font-size:13px">Run simulation to see distribution</div>
-    </div>
+    <div id="percentileBars"><div class="text-dim" style="font-size:13px">Run simulation to see distribution</div></div>
   </div>
 
-  <!-- Strategy Comparison -->
+  <!-- ====== BAYESIAN PER-NUMBER ANALYSIS ====== -->
+  <div class="card mb-12" id="bayesCard">
+    <div class="card-title">🧮 Bayesian Per-Number Analysis</div>
+
+    <div class="bayes-info">
+      <strong>Bayesian Posterior Probability</strong>  ·  Dirichlet-Multinomial Conjugate Model
+      <br>
+      <code>P(i | data, α) = (α + countᵢ) / (N·α + total_spins)</code>
+      <br>
+      where <strong>α = 1</strong> (uniform Dirichlet prior), <strong>N = slots</strong>
+      <br>
+      Prior: P(i) = <span id="bayesPriorVal">1/37 ≈ 2.70%</span>  ·  Credible Interval: <span id="bayesCIInfo">Beta(α+count, (N-1)α+total-count)</span>
+    </div>
+
+    <div class="bayes-controls">
+      <label for="bayesSort">Sort by:</label>
+      <select id="bayesSort" onchange="renderBayesianTable()">
+        <option value="probability">Bayesian Probability ↓</option>
+        <option value="ev">Expected Value (€1 bet) ↓</option>
+        <option value="zscore">|Z-score| ↓</option>
+        <option value="number">Number ↑</option>
+        <option value="count">Count ↓</option>
+      </select>
+      <label for="bayesAlpha">Prior α:</label>
+      <select id="bayesAlpha" onchange="renderBayesianTable()">
+        <option value="0.5">α = 0.5 (weak prior)</option>
+        <option value="1" selected>α = 1 (uniform prior)</option>
+        <option value="2">α = 2 (medium prior)</option>
+        <option value="5">α = 5 (strong prior)</option>
+        <option value="10">α = 10 (very strong prior)</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="checkbox" id="bayesOnlyPosEV" onchange="renderBayesianTable()"> Only +EV
+      </label>
+    </div>
+
+    <div id="bayesianTop3"></div>
+    <div class="bayes-table-wrap" id="bayesTableWrap"><div class="text-dim" style="font-size:13px;padding:10px">Load data to see per-number analysis</div></div>
+  </div>
+
   <div class="card mb-12">
     <div class="card-title">📊 Per-Bet Comparison</div>
-    <div id="comparisonTable">
-      <div class="text-dim" style="font-size:13px">Enable "Scan All Bet Types" and run to compare</div>
-    </div>
+    <div id="comparisonTable"><div class="text-dim" style="font-size:13px">Enable "Scan All Bet Types" and run to compare</div></div>
   </div>
 
-  <!-- Fairness Analysis -->
   <div class="card mb-12">
     <div class="card-title">🔬 Fairness & Bias Analysis</div>
     <div id="biasAnalysis">
@@ -489,138 +486,204 @@ textarea:focus { outline: none; border-color: var(--accent); }
     </div>
   </div>
 
-  <!-- Image Upload -->
   <div class="card">
-    <div class="card-title">📸 Upload Roulette Screenshot (auto-extract)</div>
+    <div class="card-title">📸 Image Analysis</div>
     <div class="text-dim" style="font-size:13px;margin-bottom:12px;">
-      Take a photo of the roulette screen and share it — I'll extract the data for you.
+      Send a roulette screenshot through chat — I will extract all visible stats and populate the dashboard automatically.
     </div>
-    <button class="btn btn-outline" onclick="alert('Send the image through chat and I will analyze it and populate the dashboard with the extracted data.')" style="width:100%">
-      📤 Ready for Image Analysis
-    </button>
-    <div class="help-text mt-12">In chat: send your screenshot and I'll extract all visible stats automatically</div>
+    <button class="btn btn-outline" onclick="alert('Send the image and I will analyze it and populate all data.')" style="width:100%">📤 Ready for Image</button>
   </div>
 </div>
 
-</div><!-- /grid-2 -->
-</div><!-- /container -->
+</div>
+</div>
 
 <script>
 // ===========================
-// ROULETTE CONSTANTS
+// CONSTANTS
 // ===========================
 const EUROPEAN_NUMBERS = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 const AMERICAN_NUMBERS = [0,28,9,26,30,11,7,20,32,17,5,22,34,15,3,24,36,13,1,0,27,10,25,29,12,8,19,31,18,6,21,33,16,4,23,35,14,2];
-const RED_NUMBERS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
-const BLACK_NUMBERS = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35];
+const RED_SET = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const BLACK_SET = new Set([2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35]);
 
-const BET_TYPES = ['red','black','even','odd','low','high','dozen1','dozen2','dozen3','straight'];
-const BET_LABELS = {
-  red:'Red', black:'Black', even:'Even', odd:'Odd', low:'1-18', high:'19-36',
-  dozen1:'1st Dozen', dozen2:'2nd Dozen', dozen3:'3rd Dozen', straight:'Straight'
-};
+const BET_LABELS = { red:'Red', black:'Black', even:'Even', odd:'Odd', low:'1-18', high:'19-36', dozen1:'1st Dozen', dozen2:'2nd Dozen', dozen3:'3rd Dozen', straight:'Straight' };
 const BET_PAYOUTS = { straight:35, split:17, street:11, corner:8, line:5, dozen:2, column:2, red:1, black:1, even:1, odd:1, low:1, high:1 };
-const BET_COLORS = {
-  red:'#dc2626', black:'#64748b', even:'#10b981', odd:'#f59e0b',
-  low:'#3b82f6', high:'#8b5cf6', dozen1:'#ec4899', dozen2:'#14b8a6', dozen3:'#f97316',
-  straight:'#a855f7'
-};
+const BET_TYPES = ['red','black','even','odd','low','high','dozen1','dozen2','dozen3','straight'];
 
 let mainChart = null;
 let lastResults = null;
+let lastBayesData = null;
 
-// ===========================
-// WHEEL DATA
-// ===========================
-function getWheelNumbers(wheelType) {
-  return wheelType === 'european' ? EUROPEAN_NUMBERS : AMERICAN_NUMBERS;
-}
+function isRed(n) { return RED_SET.has(n); }
+function isBlack(n) { return BLACK_SET.has(n); }
 
-function getZeroCount(wheelType) {
-  return wheelType === 'european' ? 1 : 2;
-}
+function getWheelNumbers(wt) { return wt === 'european' ? EUROPEAN_NUMBERS : AMERICAN_NUMBERS; }
+function getNumSlots(wt) { return wt === 'european' ? 37 : 38; }
+function getZeroCount(wt) { return wt === 'european' ? 1 : 2; }
 
-function isRed(num) { return RED_NUMBERS.includes(num); }
-function isBlack(num) { return BLACK_NUMBERS.includes(num); }
-
-function getNumberColor(num, wheelType) {
-  if (num === 0) return 'green';
-  if (wheelType === 'american' && num === 0) return 'green';
-  return isRed(num) ? 'red' : 'black';
+function numColor(n, wt) {
+  if (n === 0 || (wt === 'american' && n === 0)) return 'green';
+  return isRed(n) ? 'red' : 'black';
 }
 
 // ===========================
-// PRESETS
+// BAYESIAN CORE
 // ===========================
-function loadPreset(name) {
+function bayesianProbs(counts, total, wheelType, alpha) {
+  alpha = alpha || 1;
+  const slots = getNumSlots(wheelType);
+  const probs = {};
+  for (let i = 0; i < slots; i++) {
+    const key = String(i);
+    const c = counts[key] || 0;
+    probs[key] = (alpha + c) / (slots * alpha + total);
+  }
+  return probs;
+}
+
+function betaCI(count, total, slots, alpha, conf) {
+  alpha = alpha || 1;
+  conf = conf || 0.95;
+  const a = alpha + count;
+  const b = (slots - 1) * alpha + total - count;
+  const mean = a / (a + b);
+  if (a + b <= 0) return { lower: 0, upper: 0, mean: 0 };
+  const variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
+  const std = Math.sqrt(variance);
+  const z = conf === 0.99 ? 2.576 : 1.96;
+  return {
+    lower: Math.max(0, mean - z * std),
+    upper: Math.min(1, mean + z * std),
+    mean
+  };
+}
+
+function zScore(count, total, slots) {
+  const expected = total / slots;
+  if (expected <= 0) return 0;
+  const variance = total * (1/slots) * (1 - 1/slots);
+  const std = Math.sqrt(variance);
+  return std > 0 ? (count - expected) / std : 0;
+}
+
+// ===========================
+// RENDER BAYESIAN TABLE
+// ===========================
+function renderBayesianTable() {
   const wheelType = document.getElementById('wheelType').value;
-  const nums = wheelType === 'european' ? 37 : 38;
-  const counts = {};
-  const N = parseInt(document.getElementById('sampleSize').value) || 100;
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  if (total === 0) return;
 
-  // Reset all preset buttons
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const alpha = parseFloat(document.getElementById('bayesAlpha').value);
+  const sortBy = document.getElementById('bayesSort').value;
+  const onlyPos = document.getElementById('bayesOnlyPosEV').checked;
+  const slots = getNumSlots(wheelType);
+  const theoretical = 1 / slots;
+  const nums = getWheelNumbers(wheelType);
 
-  switch(name) {
-    case 'fromImage':
-      event.target.classList.add('active');
-      // Your actual observed data from image: RED=51, BLACK=44, ZERO=5
-      for (let i = 0; i < nums; i++) {
-        if (i === 0) {
-          if (wheelType === 'american') {
-            counts['0'] = 2.5; // split between 0 and 00
-            counts['00'] = 2.5;
-          } else {
-            counts['0'] = 5;
-          }
-        } else {
-          const p = (isRed(i) ? 51 : 44) / 100;
-          const n = Math.round(p * N / 18);
-          counts[String(i)] = Math.max(1, n);
-        }
-      }
-      break;
+  document.getElementById('bayesPriorVal').textContent = `1/${slots} ≈ ${(theoretical*100).toFixed(2)}%`;
 
-    case 'fair':
-      event.target.classList.add('active');
-      for (let i = 0; i < nums; i++) {
-        counts[String(i)] = Math.round(N / nums);
-      }
-      break;
+  // Compute bayesian data for each number
+  const bayesData = nums.map(num => {
+    const key = String(num);
+    const count = counts[key] || 0;
+    const bayesP = (alpha + count) / (slots * alpha + total);
+    const ci = betaCI(count, total, slots, alpha);
+    const z = zScore(count, total, slots);
+    const colour = numColor(num, wheelType);
 
-    case 'redBias':
-      event.target.classList.add('active');
-      for (let i = 0; i < nums; i++) {
-        if (i === 0) counts['0'] = 3;
-        else if (isRed(i)) counts[String(i)] = Math.round(2.5 * N / 18);
-        else counts[String(i)] = Math.round(1.8 * N / 18);
-      }
-      break;
+    // Expected value for a straight bet of €1
+    const payout = 35;
+    const ev = bayesP * payout - (1 - bayesP);
 
-    case 'zeroBias':
-      event.target.classList.add('active');
-      for (let i = 0; i < nums; i++) {
-        if (i === 0) counts['0'] = Math.round(0.08 * N);
-        else counts[String(i)] = Math.round(0.92 * N / (nums - 1));
-      }
-      break;
+    return { num, count, bayesP, ci, z, colour, ev, theoretical };
+  });
 
-    case 'random':
-      event.target.classList.add('active');
-      let remaining = N;
-      for (let i = 0; i < nums; i++) {
-        if (i === nums - 1) counts[String(i)] = remaining;
-        else {
-          const c = Math.max(0, Math.round(remaining * Math.random() * 2 / (nums - i)));
-          counts[String(i)] = c;
-          remaining -= c;
-        }
-      }
-      break;
+  // Filter
+  const filtered = onlyPos ? bayesData.filter(d => d.num !== 0 && d.num !== 0 && d.ev > 0) : bayesData;
+
+  // Sort
+  const sortFns = {
+    probability: (a,b) => b.bayesP - a.bayesP,
+    ev: (a,b) => b.ev - a.ev,
+    zscore: (a,b) => Math.abs(b.z) - Math.abs(a.z),
+    number: (a,b) => a.num - b.num,
+    count: (a,b) => b.count - a.count
+  };
+  filtered.sort(sortFns[sortBy] || sortFns.probability);
+
+  const top3 = filtered.slice(0, 3);
+  const bestColour = { red:0, black:0, green:0 };
+  bayesData.forEach(d => {
+    if (d.colour === 'red') bestColour.red += d.bayesP;
+    else if (d.colour === 'black') bestColour.black += d.bayesP;
+    else bestColour.green += d.bayesP;
+  });
+
+  // Top 3 highlight
+  let top3Html = '<div style="margin-bottom:12px">';
+  top3.forEach((d, i) => {
+    const badge = ['🥇','🥈','🥉'][i];
+    const colourDot = d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫';
+    top3Html += `<span style="display:inline-block;background:var(--surface2);padding:6px 14px;border-radius:8px;margin-right:8px;font-size:13px;border:1px solid ${i===0?'var(--gold)':'var(--border)'}">
+      ${badge} <strong>#${d.num}</strong> ${colourDot}  P=${(d.bayesP*100).toFixed(2)}%  EV=€${d.ev.toFixed(4)}
+    </span>`;
+  });
+  top3Html += `</div>
+  <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px">
+    Best colour: <strong style="color:var(--red)">Red ${(bestColour.red*100).toFixed(2)}%</strong> ·
+    <strong style="color:#94a3b8">Black ${(bestColour.black*100).toFixed(2)}%</strong> ·
+    <strong style="color:var(--green-bright)">Green ${(bestColour.green*100).toFixed(2)}%</strong>
+  </div>`;
+  document.getElementById('bayesianTop3').innerHTML = top3Html;
+
+  // Build the table
+  let html = `<table>
+    <tr>
+      <th>#</th><th>Colour</th><th>Count</th><th>Theoretical</th><th>Bayesian P</th>
+      <th>95% CI</th><th>Z-score</th><th>EV (€1)</th>
+    </tr>`;
+  filtered.forEach(d => {
+    const cClass = d.colour === 'red' ? 'num-red' : d.colour === 'green' ? 'num-green' : 'num-black';
+    const evClass = d.ev > 0 ? 'bayes-ev-pos' : 'bayes-ev-neg';
+    const ciWidth = Math.min(100, Math.max(2, (d.ci.upper - d.ci.lower) * 10000));
+    const pctWidth = (d.bayesP * 10000);
+    const barColor = d.colour === 'red' ? '#dc2626' : d.colour === 'green' ? '#10b981' : '#64748b';
+    html += `<tr>
+      <td class="num-colour ${cClass}">${d.num}</td>
+      <td>${d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫'}</td>
+      <td>${d.count}</td>
+      <td>${(d.theoretical*100).toFixed(2)}%</td>
+      <td><div style="display:flex;align-items:center;gap:4px">
+        <div class="bayes-bar" style="width:${Math.min(80, pctWidth)}px;background:${barColor}"></div>
+        <strong>${(d.bayesP*100).toFixed(2)}%</strong>
+      </div></td>
+      <td style="font-size:11px">${(d.ci.lower*100).toFixed(2)}% – ${(d.ci.upper*100).toFixed(2)}%</td>
+      <td style="color:${Math.abs(d.z) > 2 ? 'var(--red)' : 'var(--text-dim)'}">${d.z.toFixed(2)}</td>
+      <td class="${evClass}">€${d.ev.toFixed(4)}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  const wrap = document.getElementById('bayesTableWrap');
+  wrap.innerHTML = html;
+
+  // Show positive-EV summary
+  const posEV = bayesData.filter(d => d.num !== 0 && d.ev > 0);
+  if (posEV.length > 0) {
+    const prefix = document.createElement('div');
+    prefix.className = 'bayes-info';
+    prefix.style.marginTop = '12px';
+    prefix.innerHTML = `📈 <strong>Positive EV opportunities found:</strong> ${posEV.length} number(s) show positive expected value on a straight bet.
+      <br>Top pick: <strong>#${posEV[0].num}</strong> — Bayesian P = ${(posEV[0].bayesP*100).toFixed(2)}%,
+      EV = <strong style="color:var(--green-bright)">€${posEV[0].ev.toFixed(4)}</strong> per €1 bet,
+      ${(posEV[0].ci.lower*100).toFixed(2)}% – ${(posEV[0].ci.upper*100).toFixed(2)}% credible interval.`;
+    wrap.parentNode.insertBefore(prefix, wrap);
   }
 
-  renderNumberGrid(counts, wheelType);
-  updateAggFromGrid();
+  lastBayesData = { bayesData, top3, bestColour };
 }
 
 // ===========================
@@ -629,37 +692,35 @@ function loadPreset(name) {
 function renderNumberGrid(counts, wheelType) {
   const grid = document.getElementById('numberGrid');
   const nums = getWheelNumbers(wheelType);
-
   let html = '';
   nums.forEach(num => {
-    const c = getNumberColor(num, wheelType);
+    const c = numColor(num, wheelType);
     const key = String(num);
-    const count = counts && counts[key] !== undefined ? counts[key] : 0;
+    const val = counts && counts[key] !== undefined ? counts[key] : 0;
     html += `<div class="data-cell cell-${c}">
       <div class="num">${num}</div>
-      <input type="number" class="count-input" data-num="${num}" value="${count}" min="0" onchange="updateAggFromGrid()">
+      <input type="number" class="count-input" data-num="${num}" value="${val}" min="0" onchange="onGridChange()">
     </div>`;
   });
   grid.innerHTML = html;
-  updateAggFromGrid();
+  onGridChange();
 }
 
 function getCountsFromGrid() {
   const inputs = document.querySelectorAll('.count-input');
   const counts = {};
-  inputs.forEach(inp => {
-    const num = inp.dataset.num;
-    const val = parseInt(inp.value) || 0;
-    counts[num] = val;
-  });
+  inputs.forEach(inp => { counts[inp.dataset.num] = parseInt(inp.value) || 0; });
   return counts;
 }
 
-function updateAggFromGrid() {
+function onGridChange() {
+  updateTopStats();
+  renderBayesianTable();
+}
+
+function updateTopStats() {
   const counts = getCountsFromGrid();
   const wheelType = document.getElementById('wheelType').value;
-  const zeroCount = getZeroCount(wheelType);
-
   let red = 0, black = 0, green = 0, total = 0;
   Object.entries(counts).forEach(([num, c]) => {
     total += c;
@@ -671,74 +732,96 @@ function updateAggFromGrid() {
   document.getElementById('displayRed').textContent = total > 0 ? Math.round(red / total * 1000) / 10 + '%' : '0%';
   document.getElementById('displayBlack').textContent = total > 0 ? Math.round(black / total * 1000) / 10 + '%' : '0%';
   document.getElementById('displayGreen').textContent = total > 0 ? Math.round(green / total * 1000) / 10 + '%' : '0%';
-
-  // Fairness analysis
   updateBiasAnalysis(counts, total, wheelType);
 }
 
 // ===========================
-// AGGREGATE INPUT
+// PRESETS
+// ===========================
+function loadPreset(name, btn) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const wheelType = document.getElementById('wheelType').value;
+  const slots = getNumSlots(wheelType);
+  const N = parseInt(document.getElementById('sampleSize').value) || 100;
+  const nums = getWheelNumbers(wheelType);
+  const counts = {};
+
+  if (name === 'fromImage') {
+    // RED=51, BLACK=44, GREEN=5
+    const redPer = (51 / 18);
+    const blackPer = (44 / 18);
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(5 / getZeroCount(wheelType));
+      else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(redPer));
+      else counts[String(num)] = Math.max(1, Math.round(blackPer));
+    });
+  } else if (name === 'fair') {
+    nums.forEach(num => { counts[String(num)] = Math.round(N / slots); });
+  } else if (name === 'redBias') {
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = 3;
+      else if (isRed(num)) counts[String(num)] = Math.round(2.8 * N / 18);
+      else counts[String(num)] = Math.round(1.8 * N / 18);
+    });
+  } else if (name === 'zeroBias') {
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(0.08 * N);
+      else counts[String(num)] = Math.round(0.92 * N / (slots - 1));
+    });
+  } else if (name === 'random') {
+    let remaining = N;
+    nums.forEach((num, i) => {
+      if (i === nums.length - 1) counts[String(num)] = remaining;
+      else {
+        const c = Math.max(0, Math.round(remaining * Math.random() * 2 / (nums.length - i)));
+        counts[String(num)] = c;
+        remaining -= c;
+      }
+    });
+  }
+  renderNumberGrid(counts, wheelType);
+}
+
+// ===========================
+// AGGREGATE
 // ===========================
 function applyAggregate() {
   const wheelType = document.getElementById('wheelType').value;
   const nums = getWheelNumbers(wheelType);
-  const totalSlots = nums.length;
-
-  const redCount = parseInt(document.getElementById('aggRed').value) || 0;
-  const blackCount = parseInt(document.getElementById('aggBlack').value) || 0;
-  const greenCount = parseInt(document.getElementById('aggGreen').value) || 0;
-  const total = redCount + blackCount + greenCount;
-
-  if (total === 0) { alert('Enter at least some counts'); return; }
-
-  // Distribute proportionally to each number
-  const redSlots = RED_NUMBERS.length;
-  const blackSlots = BLACK_NUMBERS.length;
-  const greenSlots = getZeroCount(wheelType);
+  const redC = parseInt(document.getElementById('aggRed').value) || 0;
+  const blackC = parseInt(document.getElementById('aggBlack').value) || 0;
+  const greenC = parseInt(document.getElementById('aggGreen').value) || 0;
+  const total = redC + blackC + greenC;
+  if (total === 0) { alert('Enter counts first'); return; }
 
   const counts = {};
   nums.forEach(num => {
-    if (num === 0 || (wheelType === 'american' && num === 0)) {
-      counts[String(num)] = Math.round(greenCount / greenSlots);
-    } else if (isRed(num)) {
-      counts[String(num)] = Math.round(redCount / redSlots);
-    } else {
-      counts[String(num)] = Math.round(blackCount / blackSlots);
-    }
+    if (num === 0) counts[String(num)] = Math.round(greenC / getZeroCount(wheelType));
+    else if (isRed(num)) counts[String(num)] = Math.round(redC / 18);
+    else counts[String(num)] = Math.round(blackC / 18);
   });
-
   renderNumberGrid(counts, wheelType);
   document.getElementById('sampleSize').value = total;
 }
 
 // ===========================
-// MONTE CARLO ENGINE
+// MONTE CARLO
 // ===========================
-function generateProbs(counts, wheelType, N) {
-  const nums = getWheelNumbers(wheelType);
-  const theoretical = 1 / nums.length;
+function generateProbs(counts, wheelType) {
+  const slots = getNumSlots(wheelType);
+  const total = Object.values(counts).reduce((a,b) => a+b, 0) || 100;
+  const theoretical = 1 / slots;
   const probs = {};
-  const totalObserved = Object.values(counts).reduce((a,b) => a+b, 0) || N;
-
+  const nums = getWheelNumbers(wheelType);
   nums.forEach(num => {
     const key = String(num);
     const observed = counts[key] || 0;
-    // Bayesian smoothing: Dirichlet prior with theoretical as prior
-    const alpha = 2; // smoothing strength
-    probs[key] = (observed + alpha * theoretical) / (totalObserved + alpha);
+    const alpha = 2;
+    probs[key] = (observed + alpha * theoretical) / (total + alpha);
   });
-
   return probs;
-}
-
-function sampleOutcome(probs) {
-  const r = Math.random();
-  let cumulative = 0;
-  for (const [num, prob] of Object.entries(probs)) {
-    cumulative += prob;
-    if (r < cumulative) return parseInt(num);
-  }
-  return 0;
 }
 
 function doesBetWin(result, betType, betNumber) {
@@ -752,628 +835,358 @@ function doesBetWin(result, betType, betNumber) {
     case 'dozen1': return result >= 1 && result <= 12;
     case 'dozen2': return result >= 13 && result <= 24;
     case 'dozen3': return result >= 25 && result <= 36;
-    case 'col1': return [1,4,7,10,13,16,19,22,25,28,31,34].includes(result);
-    case 'col2': return [2,5,8,11,14,17,20,23,26,29,32,35].includes(result);
-    case 'col3': return [3,6,9,12,15,18,21,24,27,30,33,36].includes(result);
     case 'straight': return result === betNumber;
     default: return false;
   }
 }
 
-function getPayoutMultiplier(betType) {
-  return BET_PAYOUTS[betType] || 1;
+function sampleOutcome(probs) {
+  const r = Math.random();
+  let cumulative = 0;
+  for (const [num, prob] of Object.entries(probs)) {
+    cumulative += prob;
+    if (r < cumulative) return parseInt(num);
+  }
+  return 0;
 }
 
 function getWinProb(probs, betType, betNumber) {
-  let wins = 0;
-  let total = 0;
+  let wins = 0, total = 0;
   for (const [num, prob] of Object.entries(probs)) {
     total += prob;
     if (doesBetWin(parseInt(num), betType, betNumber)) wins += prob;
   }
-  return wins / total;
+  return total > 0 ? wins / total : 0;
 }
 
 function calculateEV(probs, betType, betNumber, betAmount) {
-  const payout = getPayoutMultiplier(betType);
+  const payout = BET_PAYOUTS[betType] || 1;
   let ev = 0;
   for (const [num, prob] of Object.entries(probs)) {
-    if (doesBetWin(parseInt(num), betType, betNumber)) {
-      ev += prob * betAmount * payout;
-    } else {
-      ev += prob * (-betAmount);
-    }
+    if (doesBetWin(parseInt(num), betType, betNumber)) ev += prob * betAmount * payout;
+    else ev += prob * (-betAmount);
   }
   return ev;
 }
 
 function runMC(probs, trials, iterations, bankroll, betType, betNumber, betAmount, strategy) {
   const results = [];
-  const progressInterval = Math.max(1, Math.floor(trials / 20));
-
+  const progInt = Math.max(1, Math.floor(trials / 20));
   for (let t = 0; t < trials; t++) {
-    let br = bankroll;
-    let currentBet = betAmount;
-    let peak = bankroll;
-    let maxDD = 0;
-    let fibIdx = 0;
+    let br = bankroll, peak = bankroll, maxDD = 0, fibIdx = 0, martCnt = 0, curBet = betAmount;
     const fib = [1,1,2,3,5,8,13,21,34,55,89];
-    let martingaleCount = 0;
 
     for (let i = 0; i < iterations; i++) {
-      // Determine bet amount based on strategy
-      let bet = currentBet;
-      if (strategy === 'proportional') {
-        bet = Math.max(0.5, br * (betAmount / 100));
-      } else if (strategy === 'kelly') {
+      let bet = curBet;
+      if (strategy === 'proportional') bet = Math.max(0.5, br * (betAmount / 100));
+      else if (strategy === 'kelly') {
         const p = getWinProb(probs, betType, betNumber);
-        const q = 1 - p;
-        const b = getPayoutMultiplier(betType);
-        const kellyFrac = (p * (b + 1) - 1) / b;
-        if (kellyFrac <= 0) bet = 0.5; // edge is negative, minimum bet
-        else bet = Math.max(0.5, br * kellyFrac * 0.25); // quarter kelly for safety
+        const b = BET_PAYOUTS[betType] || 1;
+        const kf = (p * (b + 1) - 1) / b;
+        bet = kf > 0 ? Math.max(0.5, br * kf * 0.25) : 0.5;
       } else if (strategy === 'martingale') {
-        bet = currentBet * Math.pow(2, martingaleCount);
-        if (bet > br * 0.1) { martingaleCount = 0; bet = currentBet; }
+        bet = curBet * Math.pow(2, martCnt);
+        if (bet > br * 0.1) { martCnt = 0; bet = curBet; }
       } else if (strategy === 'fibonacci') {
-        bet = currentBet * fib[Math.min(fibIdx, fib.length - 1)];
-        if (bet > br * 0.1) { fibIdx = 0; bet = currentBet; }
+        bet = curBet * fib[Math.min(fibIdx, fib.length - 1)];
+        if (bet > br * 0.1) { fibIdx = 0; bet = curBet; }
       }
-
-      bet = Math.min(bet, br); // can't bet more than you have
+      bet = Math.min(bet, br);
       if (bet <= 0) break;
 
       const result = sampleOutcome(probs);
       if (doesBetWin(result, betType, betNumber)) {
-        br += bet * getPayoutMultiplier(betType);
-        if (strategy === 'martingale') martingaleCount = 0;
+        br += bet * (BET_PAYOUTS[betType] || 1);
+        if (strategy === 'martingale') martCnt = 0;
         if (strategy === 'fibonacci') fibIdx = Math.max(0, fibIdx - 2);
       } else {
         br -= bet;
-        if (strategy === 'martingale') martingaleCount++;
+        if (strategy === 'martingale') martCnt++;
         if (strategy === 'fibonacci') fibIdx++;
       }
-
-      if (strategy === 'martingale' && martingaleCount > 6) martingaleCount = 0;
-      if (strategy === 'fibonacci' && fibIdx > 10) fibIdx = 0;
-
-      peak = Math.max(peak, br + bet);
+      if (martCnt > 6) martCnt = 0;
+      if (fibIdx > 10) fibIdx = 0;
+      peak = Math.max(peak, br);
       maxDD = Math.max(maxDD, peak - br);
     }
-
     results.push({ final: br, dd: maxDD });
-
-    // Progress update
-    if (t % progressInterval === 0 && t > 0) {
-      document.getElementById('loadingStatus').textContent =
-        `Trial ${t.toLocaleString()} / ${trials.toLocaleString()} (${Math.round(t/trials*100)}%)`;
+    if (t % progInt === 0 && t > 0) {
+      document.getElementById('loadingStatus').textContent = `Trial ${t.toLocaleString()} / ${trials.toLocaleString()} (${Math.round(t/trials*100)}%)`;
     }
   }
-
   return results;
 }
 
-function analyzeResults(results, initialBankroll) {
+function analyzeResults(results, initial) {
   const finals = results.map(r => r.final);
-  const dds = results.map(r => r.dd);
-  const trials = results.length;
-
-  const wins = finals.filter(f => f > initialBankroll).length;
-  const losses = finals.filter(f => f < initialBankroll).length;
-  const pushes = finals.filter(f => f === initialBankroll).length;
-
-  const avg = finals.reduce((a,b) => a+b, 0) / trials;
   const sorted = [...finals].sort((a,b) => a-b);
-  const median = sorted[Math.floor(trials / 2)];
-
-  const p5 = sorted[Math.floor(trials * 0.05)];
-  const p10 = sorted[Math.floor(trials * 0.10)];
-  const p25 = sorted[Math.floor(trials * 0.25)];
-  const p75 = sorted[Math.floor(trials * 0.75)];
-  const p90 = sorted[Math.floor(trials * 0.90)];
-  const p95 = sorted[Math.floor(trials * 0.95)];
-
-  const variance = finals.reduce((sum, f) => sum + Math.pow(f - avg, 2), 0) / trials;
+  const trials = results.length;
+  const wins = finals.filter(f => f > initial).length;
+  const avg = finals.reduce((a,b) => a+b, 0) / trials;
+  const median = sorted[Math.floor(trials/2)];
+  const p5 = sorted[Math.floor(trials*0.05)], p25 = sorted[Math.floor(trials*0.25)];
+  const p75 = sorted[Math.floor(trials*0.75)], p95 = sorted[Math.floor(trials*0.95)];
+  const variance = finals.reduce((s,f) => s + Math.pow(f-avg,2), 0) / trials;
   const stdDev = Math.sqrt(variance);
-  const avgDD = dds.reduce((a,b) => a+b, 0) / trials;
-  const maxDD = Math.max(...dds);
-
-  // Sharpe-like ratio
-  const sharpe = stdDev > 0 ? (avg - initialBankroll) / stdDev : 0;
-
-  return {
-    winProb: wins / trials,
-    lossProb: losses / trials,
-    pushProb: pushes / trials,
-    avgReturn: avg,
-    medianReturn: median,
-    expectedProfit: avg - initialBankroll,
-    stdDev, sharpe,
-    p5, p10, p25, p75, p90, p95,
-    avgDrawdown: avgDD,
-    maxDrawdown: maxDD,
-    finals, sorted
-  };
+  const avgDD = results.reduce((a,r) => a + r.dd, 0) / trials;
+  return { winProb: wins/trials, avgReturn: avg, medianReturn: median,
+    expectedProfit: avg - initial, stdDev, sharpe: stdDev > 0 ? (avg-initial)/stdDev : 0,
+    p5, p25, p75, p95, avgDrawdown: avgDD, maxDrawdown: Math.max(...results.map(r => r.dd)),
+    finals, sorted };
 }
 
-function buildHistogram(finals, initialBankroll, bins) {
-  const min = Math.min(...finals);
-  const max = Math.max(...finals);
-  const range = max - min || 1;
-  const binWidth = range / bins;
-  const hist = [];
-
-  for (let i = 0; i < bins; i++) {
-    const lo = min + i * binWidth;
-    const hi = lo + binWidth;
-    const count = finals.filter(f => f >= lo && f < hi).length;
-    hist.push({ x: (lo + hi) / 2, y: count });
-  }
-  return hist;
+function buildHistogram(finals, bankroll, bins) {
+  const min = Math.min(...finals), max = Math.max(...finals);
+  const bw = (max - min) / bins || 1;
+  return Array.from({length: bins}, (_, i) => {
+    const lo = min + i * bw;
+    return { x: (lo + lo + bw) / 2, y: finals.filter(f => f >= lo && f < lo + bw).length };
+  });
 }
 
 // ===========================
-// MAIN SIMULATION RUNNER
+// RUN
 // ===========================
 function runSimulation() {
   const btn = document.getElementById('runBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Running...';
-
-  const loadingEl = document.getElementById('loadingOverlay');
-  loadingEl.classList.add('show');
-
-  // Use setTimeout to let the UI update before heavy computation
+  btn.disabled = true; btn.textContent = '⏳ Running...';
+  document.getElementById('loadingOverlay').classList.add('show');
   setTimeout(() => {
-    try {
-      _runSimulation();
-    } catch(e) {
-      console.error(e);
-      alert('Error during simulation: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '▶ Run Monte Carlo Simulation';
-      loadingEl.classList.remove('show');
-    }
+    try { _run(); } catch(e) { console.error(e); alert('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.textContent = '▶ Run Monte Carlo Simulation'; document.getElementById('loadingOverlay').classList.remove('show'); }
   }, 50);
 }
 
-function _runSimulation() {
+function _run() {
   const wheelType = document.getElementById('wheelType').value;
   const counts = getCountsFromGrid();
-  const sampleSize = parseInt(document.getElementById('sampleSize').value) || 100;
-  const N = Object.values(counts).reduce((a,b) => a+b, 0) || sampleSize;
+  const total = Object.values(counts).reduce((a,b) => a+b, 0) || 100;
+  const probs = generateProbs(counts, wheelType);
 
-  // Generate probabilities
-  const probs = generateProbs(counts, wheelType, N);
-
-  // Get params
   const scanAll = document.getElementById('scanAll').value === 'true';
   const bankroll = parseFloat(document.getElementById('bankroll').value) || 100;
   const iterations = parseInt(document.getElementById('iterations').value) || 50;
   const betType = document.getElementById('betType').value;
-  const straightNumber = parseInt(document.getElementById('straightNumber').value) || 0;
+  const straightNum = parseInt(document.getElementById('straightNumber').value) || 0;
   const betAmount = parseFloat(document.getElementById('betAmount').value) || 5;
   const strategy = document.getElementById('betStrategy').value;
   const trials = parseInt(document.getElementById('mcTrials').value) || 100000;
 
-  document.getElementById('loadingStatus').textContent = 'Computing optimal strategy...';
+  document.getElementById('loadingStatus').textContent = 'Computing...';
 
-  let bestResult = null;
-  let allResults = {};
+  let bestResult = null, allResults = {};
 
   if (scanAll) {
-    // Scan all bet types to find the optimal one
-    const typesToScan = ['red','black','even','odd','low','high','dozen1','dozen2','dozen3'];
-    let bestWinProb = -1;
-    let bestType = betType;
-    let bestNum = 0;
-
-    for (const bt of typesToScan) {
-      const winProb = getWinProb(probs, bt, null);
+    const types = ['red','black','even','odd','low','high','dozen1','dozen2','dozen3'];
+    let bestWP = -1;
+    for (const bt of types) {
+      const wp = getWinProb(probs, bt, null);
       const ev = calculateEV(probs, bt, null, 1);
-      const results = runMC(probs, Math.min(trials, 50000), iterations, bankroll, bt, null, betAmount, strategy);
-      const analysis = analyzeResults(results, bankroll);
-      allResults[bt] = { winProb, ev, analysis };
-
-      if (analysis.winProb > bestWinProb) {
-        bestWinProb = analysis.winProb;
-        bestType = bt;
-        bestResult = { betType: bt, betNumber: null, winProb: analysis.winProb, ev, analysis };
-      }
+      const res = runMC(probs, Math.min(trials, 50000), iterations, bankroll, bt, null, betAmount, strategy);
+      const a = analyzeResults(res, bankroll);
+      allResults[bt] = { winProb: wp, ev, analysis: a };
+      if (a.winProb > bestWP) { bestWP = a.winProb; bestResult = { betType: bt, betNumber: null, winProb: wp, ev, analysis: a }; }
     }
-
-    // Also check straight bets on most frequent numbers
-    const sortedNums = Object.entries(counts)
-      .filter(([k,v]) => parseInt(k) > 0 && v > 0)
-      .sort((a,b) => b[1] - a[1]);
-
-    const topNums = sortedNums.slice(0, 5);
-    for (const [num, count] of topNums) {
+    // Top numbers
+    const top = Object.entries(counts).filter(([k,v]) => parseInt(k)>0 && v>0).sort((a,b) => b[1]-a[1]).slice(0,5);
+    for (const [num, cnt] of top) {
       const n = parseInt(num);
-      const winProb = getWinProb(probs, 'straight', n);
+      const wp = getWinProb(probs, 'straight', n);
       const ev = calculateEV(probs, 'straight', n, 1);
-      const results = runMC(probs, Math.min(trials, 10000), iterations, bankroll, 'straight', n, betAmount, strategy);
-      const analysis = analyzeResults(results, bankroll);
-      const label = 'straight-' + n;
-      allResults[label] = { winProb, ev, analysis };
-
-      if (analysis.winProb > bestWinProb) {
-        bestWinProb = analysis.winProb;
-        bestType = 'straight';
-        bestResult = { betType: 'straight', betNumber: n, winProb: analysis.winProb, ev, analysis };
-      }
+      const res = runMC(probs, Math.min(trials, 10000), iterations, bankroll, 'straight', n, betAmount, strategy);
+      const a = analyzeResults(res, bankroll);
+      allResults['straight-'+n] = { winProb: wp, ev, analysis: a };
+      if (a.winProb > bestWP) { bestWP = a.winProb; bestResult = { betType: 'straight', betNumber: n, winProb: wp, ev, analysis: a }; }
     }
   } else {
-    // Single bet type
-    const betNumber = betType === 'straight' ? straightNumber : null;
-    const winProb = getWinProb(probs, betType, betNumber);
-    const ev = calculateEV(probs, betType, betNumber, 1);
-    const results = runMC(probs, trials, iterations, bankroll, betType, betNumber, betAmount, strategy);
-    const analysis = analyzeResults(results, bankroll);
-    bestResult = { betType, betNumber, winProb, ev, analysis };
-    allResults[betType] = { winProb, ev, analysis };
+    const bn = betType === 'straight' ? straightNum : null;
+    const wp = getWinProb(probs, betType, bn);
+    const ev = calculateEV(probs, betType, bn, 1);
+    const res = runMC(probs, trials, iterations, bankroll, betType, bn, betAmount, strategy);
+    const a = analyzeResults(res, bankroll);
+    bestResult = { betType, betNumber: bn, winProb: wp, ev, analysis: a };
+    allResults[betType] = { winProb: wp, ev, analysis: a };
   }
 
-  lastResults = { probs, counts, bestResult, allResults, bankroll, iterations, trials, wheelType, N };
+  lastResults = { probs, counts, bestResult, allResults, bankroll, iterations, trials, wheelType, N: total };
   displayResults(lastResults);
-  addLogEntry(lastResults);
+  logEntry(lastResults);
 }
 
 // ===========================
-// DISPLAY RESULTS
+// DISPLAY
 // ===========================
-function displayResults(data) {
-  const { bestResult, allResults, bankroll, iterations, trials, probs, counts, wheelType, N } = data;
+function displayResults(d) {
+  const { bestResult: r, allResults, bankroll, iterations, trials } = d;
 
-  // Recommendation
-  const recBox = document.getElementById('recommendationBox');
-  const recValue = document.getElementById('recValue');
-  const recSub = document.getElementById('recSub');
+  let recText = r.betNumber !== null ? `Bet ${BET_LABELS[r.betType]} #${r.betNumber}` : `Bet ${BET_LABELS[r.betType]}`;
+  document.getElementById('recValue').textContent = recText;
+  document.getElementById('recSub').textContent = `Win Prob: ${(r.analysis.winProb*100).toFixed(1)}% · EV: €${r.ev.toFixed(4)}/€ · ${trials.toLocaleString()} trials`;
 
-  let recText = '';
-  if (bestResult.betNumber !== null) {
-    recText = `Bet on ${BET_LABELS[bestResult.betType]} #${bestResult.betNumber}`;
-  } else {
-    recText = `Bet on ${BET_LABELS[bestResult.betType]}`;
-  }
-  recValue.textContent = recText;
+  const box = document.getElementById('recommendationBox');
+  box.style.borderColor = r.analysis.winProb > 0.5 ? '#10b981' : '#f59e0b';
 
-  const totalWagers = Object.values(counts).reduce((a,b) => a+b, 0);
-  const colors = { red: '🔴', black: '⚫', even: '🔢', odd: '🔢', low: '⬇️', high: '⬆️',
-    dozen1: '1️⃣', dozen2: '2️⃣', dozen3: '3️⃣', straight: '🎯' };
-  const wProb = (bestResult.winProb * 100).toFixed(1);
-  const evDisplay = bestResult.ev.toFixed(4);
-  recSub.textContent = `${colors[bestResult.betType] || ''} Win Prob: ${wProb}% · EV per €: €${evDisplay} · ${trials.toLocaleString()} trials`;
+  document.getElementById('resWinProb').textContent = (r.analysis.winProb*100).toFixed(1) + '%';
+  document.getElementById('resEV').textContent = '€' + r.analysis.expectedProfit.toFixed(2);
+  document.getElementById('resMedian').textContent = '€' + r.analysis.medianReturn.toFixed(2);
 
-  if (bestResult.analysis.winProb > 0.5) {
-    recBox.style.borderColor = '#10b981';
-  } else {
-    recBox.style.borderColor = '#f59e0b';
-  }
-
-  // Stat cards
-  document.getElementById('resWinProb').textContent = (bestResult.analysis.winProb * 100).toFixed(1) + '%';
-  document.getElementById('resEV').textContent = '€' + bestResult.analysis.expectedProfit.toFixed(2);
-  document.getElementById('resMedian').textContent = '€' + bestResult.analysis.medianReturn.toFixed(2);
-
-  // Percentile bars
-  const pBars = document.getElementById('percentileBars');
-  const a = bestResult.analysis;
-  const maxP = Math.max(bankroll, a.p95);
-  const minP = Math.min(bankroll, a.p5);
-
-  pBars.innerHTML = `
-    <div class="percentile-bar">
-      <span class="label">P5</span>
-      <div class="track"><div class="fill" style="width:${((a.p5 - minP) / (maxP - minP) * 100).toFixed(0)}%;background:#dc2626"></div></div>
-      <span class="val">€${a.p5.toFixed(0)}</span>
-    </div>
-    <div class="percentile-bar">
-      <span class="label">P25</span>
-      <div class="track"><div class="fill" style="width:${((a.p25 - minP) / (maxP - minP) * 100).toFixed(0)}%;background:#f59e0b"></div></div>
-      <span class="val">€${a.p25.toFixed(0)}</span>
-    </div>
-    <div class="percentile-bar">
-      <span class="label">P50</span>
-      <div class="track"><div class="fill" style="width:${((a.medianReturn - minP) / (maxP - minP) * 100).toFixed(0)}%;background:#3b82f6"></div></div>
-      <span class="val">€${a.medianReturn.toFixed(0)}</span>
-    </div>
-    <div class="percentile-bar">
-      <span class="label">P75</span>
-      <div class="track"><div class="fill" style="width:${((a.p75 - minP) / (maxP - minP) * 100).toFixed(0)}%;background:#10b981"></div></div>
-      <span class="val">€${a.p75.toFixed(0)}</span>
-    </div>
-    <div class="percentile-bar">
-      <span class="label">P95</span>
-      <div class="track"><div class="fill" style="width:${((a.p95 - minP) / (maxP - minP) * 100).toFixed(0)}%;background:#10b981"></div></div>
-      <span class="val">€${a.p95.toFixed(0)}</span>
-    </div>
+  // Percentiles
+  const a = r.analysis;
+  const maxP = Math.max(bankroll, a.p95), minP = Math.min(bankroll, a.p5);
+  const range = maxP - minP || 1;
+  document.getElementById('percentileBars').innerHTML = `
+    <div class="percentile-bar"><span class="label">P5</span><div class="track"><div class="fill" style="width:${((a.p5-minP)/range*100).toFixed(0)}%;background:#dc2626"></div></div><span class="val">€${a.p5.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P25</span><div class="track"><div class="fill" style="width:${((a.p25-minP)/range*100).toFixed(0)}%;background:#f59e0b"></div></div><span class="val">€${a.p25.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P50</span><div class="track"><div class="fill" style="width:${((a.medianReturn-minP)/range*100).toFixed(0)}%;background:#3b82f6"></div></div><span class="val">€${a.medianReturn.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P75</span><div class="track"><div class="fill" style="width:${((a.p75-minP)/range*100).toFixed(0)}%;background:#10b981"></div></div><span class="val">€${a.p75.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P95</span><div class="track"><div class="fill" style="width:${((a.p95-minP)/range*100).toFixed(0)}%;background:#10b981"></div></div><span class="val">€${a.p95.toFixed(0)}</span></div>
     <div style="margin-top:8px;font-size:12px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:8px;">
-      Expected: €${a.avgReturn.toFixed(2)} · Std Dev: €${a.stdDev.toFixed(2)} · Sharpe: ${a.sharpe.toFixed(3)} · Avg Drawdown: €${a.avgDrawdown.toFixed(2)}
-    </div>
-  `;
+    Expected: €${a.avgReturn.toFixed(2)} · Std Dev: €${a.stdDev.toFixed(2)} · Sharpe: ${a.sharpe.toFixed(3)} · Avg DD: €${a.avgDrawdown.toFixed(2)}</div>`;
 
-  // Distribution chart
+  // Chart
   const hist = buildHistogram(a.finals, bankroll, 40);
   renderChart(hist, bankroll, 'distribution');
+  renderComparison(allResults, bankroll, r);
 
-  // Strategy comparison table
-  renderComparison(allResults, bankroll, bestResult);
-
-  // Store finals for cumulative chart
   lastResults._finals = a.finals;
   lastResults._bankroll = bankroll;
 }
 
 // ===========================
-// CHARTS
+// CHART
 // ===========================
 function renderChart(hist, bankroll, mode) {
   const ctx = document.getElementById('mainChart').getContext('2d');
   if (mainChart) mainChart.destroy();
 
   if (mode === 'distribution') {
+    const colors = hist.map(h => h.x >= bankroll ? 'rgba(16,185,129,0.6)' : 'rgba(220,38,38,0.5)');
+    const borders = hist.map(h => h.x >= bankroll ? '#10b981' : '#dc2626');
     mainChart = new Chart(ctx, {
       type: 'bar',
-      data: {
-        labels: hist.map(h => '€' + h.x.toFixed(0)),
-        datasets: [{
-          label: 'Outcome Frequency',
-          data: hist.map(h => h.y),
-          backgroundColor: hist.map(h => h.x >= bankroll ? 'rgba(16,185,129,0.6)' : 'rgba(220,38,38,0.5)'),
-          borderColor: hist.map(h => h.x >= bankroll ? '#10b981' : '#dc2626'),
-          borderWidth: 1,
-          borderRadius: 2
-        }]
+      data: { labels: hist.map(h => '€' + h.x.toFixed(0)),
+        datasets: [{ label: 'Outcomes', data: hist.map(h => h.y), backgroundColor: colors, borderColor: borders, borderWidth: 1, borderRadius: 2 }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1a2332',
-            borderColor: '#1e3044',
-            borderWidth: 1,
-            titleColor: '#e2e8f0',
-            bodyColor: '#8899aa',
-            callbacks: {
-              label: (ctx) => `${ctx.parsed.y} trials`
-            }
-          }
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { backgroundColor: '#1a2332', borderColor: '#1e3044', borderWidth: 1, titleColor: '#e2e8f0', bodyColor: '#8899aa',
+            callbacks: { label: ctx => `${ctx.parsed.y} trials` } }
         },
-        scales: {
-          x: {
-            display: false,
-            grid: { display: false }
-          },
-          y: {
-            grid: { color: 'rgba(30,48,68,0.5)' },
-            ticks: { color: '#8899aa', font: { size: 11 } }
-          }
-        }
+        scales: { x: { display: false, grid: { display: false } }, y: { grid: { color: 'rgba(30,48,68,0.5)' }, ticks: { color: '#8899aa', font: { size: 11 } } } }
       }
     });
-  } else if (mode === 'cumulative' && lastResults) {
-    const finals = lastResults._finals;
-    const br = lastResults._bankroll;
-    const sorted = [...finals].sort((a,b) => a-b);
-    const cumulativeData = sorted.map((f, i) => ({ x: f, y: (i + 1) / sorted.length * 100 }));
-
+  } else {
+    const sorted = [...lastResults._finals].sort((a,b) => a-b);
+    const cumData = sorted.map((f,i) => ({ x: f, y: (i+1)/sorted.length*100 }));
     mainChart = new Chart(ctx, {
       type: 'line',
-      data: {
-        datasets: [{
-          label: 'Cumulative Distribution',
-          data: cumulativeData,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59,130,246,0.1)',
-          fill: true,
-          pointRadius: 0,
-          borderWidth: 2,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1a2332',
-            borderColor: '#1e3044',
-            borderWidth: 1,
-            titleColor: '#e2e8f0',
-            bodyColor: '#8899aa',
-            callbacks: {
-              label: (ctx) => `€${ctx.parsed.x.toFixed(2)} (${ctx.parsed.y.toFixed(1)}%)`
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(30,48,68,0.3)' },
-            ticks: { color: '#8899aa', font: { size: 11 }, callback: v => '€' + v.toFixed(0) }
-          },
-          y: {
-            grid: { color: 'rgba(30,48,68,0.3)' },
-            ticks: { color: '#8899aa', font: { size: 11 }, callback: v => v + '%' },
-            title: { display: true, text: 'Cumulative %', color: '#8899aa' }
-          }
-        }
+      data: { datasets: [{ label: 'Cumulative', data: cumData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, pointRadius: 0, borderWidth: 2, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a2332', borderColor: '#1e3044', borderWidth: 1, titleColor: '#e2e8f0', bodyColor: '#8899aa', callbacks: { label: ctx => `€${ctx.parsed.x.toFixed(2)} (${ctx.parsed.y.toFixed(1)}%)` } } },
+        scales: { x: { grid: { color: 'rgba(30,48,68,0.3)' }, ticks: { color: '#8899aa', font: { size: 11 }, callback: v => '€' + v.toFixed(0) } },
+          y: { grid: { color: 'rgba(30,48,68,0.3)' }, ticks: { color: '#8899aa', font: { size: 11 }, callback: v => v + '%' } } }
       }
     });
-  } else if (mode === 'risk' && lastResults) {
-    const finals = lastResults._finals;
-    const br = lastResults._bankroll;
-    // Plot a few sample paths (every Nth trial)
-    // Can't store all paths, so show a heatmap-like view of final outcomes
-    renderChart(hist, br, 'distribution'); // fallback
   }
 }
 
 function switchChart(mode, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  if (lastResults) {
-    const a = lastResults.bestResult.analysis;
-    const hist = buildHistogram(a.finals, lastResults._bankroll || lastResults.bankroll, 40);
-    renderChart(hist, lastResults.bankroll, mode);
-  }
+  if (!lastResults) return;
+  const a = lastResults.bestResult.analysis;
+  const hist = buildHistogram(a.finals, lastResults._bankroll || lastResults.bankroll, 40);
+  renderChart(hist, lastResults.bankroll, mode);
 }
 
-// ===========================
-// STRATEGY COMPARISON TABLE
-// ===========================
-function renderComparison(allResults, bankroll, bestResult) {
-  const tableDiv = document.getElementById('comparisonTable');
+function renderComparison(allResults, bankroll, best) {
+  const div = document.getElementById('comparisonTable');
   const entries = Object.entries(allResults);
-
   if (entries.length <= 1) {
-    tableDiv.innerHTML = `<div class="text-dim" style="font-size:13px">Enable "Scan All Bet Types" to compare strategies</div>`;
+    div.innerHTML = `<div class="text-dim" style="font-size:13px">Enable "Scan All Bet Types" to compare</div>`;
     return;
   }
-
-  const bestKey = bestResult.betNumber !== null ? `${bestResult.betType}-${bestResult.betNumber}` : bestResult.betType;
-
-  let html = `<table>
-    <tr><th>Bet Type</th><th>Win Prob</th><th>EV/€</th><th>Median</th><th>Std Dev</th></tr>`;
-
+  const bestKey = best.betNumber !== null ? `${best.betType}-${best.betNumber}` : best.betType;
   entries.sort((a,b) => b[1].analysis.winProb - a[1].analysis.winProb);
-
-  entries.forEach(([key, data]) => {
-    const label = key.startsWith('straight-') ? `Straight #${key.split('-')[1]}` : BET_LABELS[key] || key;
-    const isBest = key === bestKey;
-    html += `<tr class="${isBest ? 'best-row' : ''}">
-      <td>${label} ${isBest ? '⭐' : ''}</td>
-      <td>${(data.analysis.winProb * 100).toFixed(1)}%</td>
-      <td>€${data.ev.toFixed(4)}</td>
-      <td>€${data.analysis.medianReturn.toFixed(2)}</td>
-      <td>€${data.analysis.stdDev.toFixed(2)}</td>
-    </tr>`;
+  let html = `<table><tr><th>Bet</th><th>Win Prob</th><th>EV/€</th><th>Median</th><th>Std Dev</th></tr>`;
+  entries.forEach(([k, d]) => {
+    const label = k.startsWith('straight-') ? `#${k.split('-')[1]}` : BET_LABELS[k] || k;
+    const isBest = k === bestKey;
+    html += `<tr class="${isBest ? 'best-row' : ''}"><td>${label}${isBest ? ' ⭐' : ''}</td><td>${(d.analysis.winProb*100).toFixed(1)}%</td><td>€${d.ev.toFixed(4)}</td><td>€${d.analysis.medianReturn.toFixed(2)}</td><td>€${d.analysis.stdDev.toFixed(2)}</td></tr>`;
   });
-
   html += '</table>';
-  tableDiv.innerHTML = html;
+  div.innerHTML = html;
 }
 
 // ===========================
-// FAIRNESS ANALYSIS
+// FAIRNESS
 // ===========================
 function updateBiasAnalysis(counts, total, wheelType) {
   if (total === 0) return;
-
+  const slots = getNumSlots(wheelType);
   const nums = getWheelNumbers(wheelType);
-  const expected = total / nums.length;
-  const numSlots = nums.length;
-
-  // Chi-squared statistic
+  const expected = total / slots;
   let chiSq = 0;
-  nums.forEach(num => {
-    const key = String(num);
-    const observed = counts[key] || 0;
-    if (expected > 0) chiSq += Math.pow(observed - expected, 2) / expected;
-  });
+  nums.forEach(num => { const o = counts[String(num)] || 0; if (expected > 0) chiSq += Math.pow(o - expected, 2) / expected; });
+  const chiRatio = chiSq / (slots - 1);
 
-  const degreesOfFreedom = numSlots - 1;
-  // Approximate p-value (rough calculation)
-  const chiRatio = chiSq / degreesOfFreedom;
-
-  // Z-score per number
-  const biasGrid = document.getElementById('numberBiasGrid');
-  const stdErr = Math.sqrt(total * (1/numSlots) * (1 - 1/numSlots));
-
-  let zScores = nums.map(num => {
-    const key = String(num);
-    const obs = counts[key] || 0;
-    const exp = expected;
-    const se = Math.sqrt(total * (exp/total) * (1 - exp/total));
-    const z = se > 0 ? (obs - exp) / se : 0;
-    return { num, z, obs, exp, color: getNumberColor(num, wheelType) };
-  });
-
-  // Chi-squared result
   const chiDiv = document.getElementById('chiSquaredResult');
-  let status = 'normal';
-  let statusClass = 'status-pass';
-  let message = 'Wheel appears fair';
+  let sClass = 'status-pass', msg = 'Wheel appears fair';
+  if (chiRatio > 1.5) { sClass = 'status-warn'; msg = 'Possible deviation'; }
+  if (chiRatio > 2.0) { sClass = 'status-fail'; msg = 'Significant bias'; }
+  chiDiv.innerHTML = `<div class="analysis-row"><div class="metric">χ² = <strong>${chiSq.toFixed(2)}</strong> (df=${slots-1})</div><div class="metric">Ratio: <strong>${chiRatio.toFixed(2)}</strong></div><div class="status ${sClass}">${msg}</div></div>`;
 
-  if (chiRatio > 1.5) { status = 'suspicious'; statusClass = 'status-warn'; message = 'Possible deviation detected'; }
-  if (chiRatio > 2.0) { status = 'biased'; statusClass = 'status-fail'; message = 'Significant bias detected'; }
+  const zs = nums.map(num => {
+    const o = counts[String(num)] || 0;
+    const se = Math.sqrt(total * (1/slots) * (1 - 1/slots));
+    return { num, z: se > 0 ? (o - expected) / se : 0, colour: numColor(num, wheelType) };
+  });
+  zs.sort((a,b) => Math.abs(b.z) - Math.abs(a.z));
 
-  chiDiv.innerHTML = `
-    <div class="analysis-row">
-      <div class="metric">Chi-squared: <strong>${chiSq.toFixed(2)}</strong> (df=${degreesOfFreedom})</div>
-      <div class="metric">Ratio: <strong>${chiRatio.toFixed(2)}</strong></div>
-      <div class="status ${statusClass}">${message}</div>
-    </div>
-  `;
-
-  // Number-by-number Z-scores
-  let biasHtml = '<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">Per-number Z-scores (|Z| > 2 = significant)</div><div class="bias-grid">';
-  zScores.sort((a,b) => Math.abs(b.z) - Math.abs(a.z));
-  zScores.forEach(s => {
+  let bh = '<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">|Z| > 2 = significant deviation</div><div class="bias-grid">';
+  zs.forEach(s => {
     let cls = 'bias-normal';
     if (s.z > 1.5) cls = 'bias-over';
     else if (s.z < -1.5) cls = 'bias-under';
-    biasHtml += `<div class="bias-item ${cls}" title="Obs:${s.obs} Exp:${s.exp.toFixed(1)}">
-      <div class="num" style="color:${s.color === 'red' ? '#dc2626' : s.color === 'green' ? '#10b981' : '#94a3b8'}">${s.num}</div>
-      <div class="zscore">Z=${s.z.toFixed(1)}</div>
-    </div>`;
+    const c = s.colour === 'red' ? '#dc2626' : s.colour === 'green' ? '#10b981' : '#94a3b8';
+    bh += `<div class="bias-item ${cls}"><div class="num" style="color:${c}">${s.num}</div><div class="zscore">z=${s.z.toFixed(1)}</div></div>`;
   });
-  biasHtml += '</div>';
-  biasGrid.innerHTML = biasHtml;
+  bh += '</div>';
+  document.getElementById('numberBiasGrid').innerHTML = bh;
 }
 
 // ===========================
 // LOG
 // ===========================
-function addLogEntry(data) {
-  const container = document.getElementById('logContainer');
-  const empty = container.querySelector('.text-dim');
-  if (empty) container.innerHTML = '';
-
-  const now = new Date();
-  const time = now.toLocaleTimeString();
-  const r = data.bestResult;
-  const betLabel = r.betNumber !== null ? `${BET_LABELS[r.betType]} #${r.betNumber}` : BET_LABELS[r.betType];
-
-  const entry = document.createElement('div');
-  entry.className = 'log-entry';
-  entry.innerHTML = `
-    <span class="time">${time}</span>
-    <span class="bet">${betLabel}</span>
-    · Win: <span class="prob">${(r.analysis.winProb * 100).toFixed(1)}%</span>
-    · EV: <span class="ev">€${r.analysis.expectedProfit.toFixed(2)}</span>
-    · Trials: ${data.trials.toLocaleString()}
-  `;
-  container.insertBefore(entry, container.firstChild);
+function logEntry(d) {
+  const c = document.getElementById('logContainer');
+  const empty = c.querySelector('.text-dim');
+  if (empty) c.innerHTML = '';
+  const r = d.bestResult;
+  const label = r.betNumber !== null ? `${BET_LABELS[r.betType]} #${r.betNumber}` : BET_LABELS[r.betType];
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  el.innerHTML = `<span class="time">${new Date().toLocaleTimeString()}</span><span class="bet">${label}</span> · Win: <span class="prob">${(r.analysis.winProb*100).toFixed(1)}%</span> · EV: <span class="ev">€${r.analysis.expectedProfit.toFixed(2)}</span> · ${d.trials.toLocaleString()} trials`;
+  c.insertBefore(el, c.firstChild);
 }
 
 // ===========================
-// BET TYPE TOGGLE
+// SETUP
 // ===========================
-function toggleBetAmount() {
-  const strategy = document.getElementById('betStrategy').value;
-  const amountLabel = document.querySelector('[for="betAmount"]') || document.querySelector('.form-group:nth-child(2) label');
-  if (strategy === 'proportional') {
-    document.querySelector('[for="betAmount"]').textContent = 'Bet % of bankroll';
-  } else {
-    document.querySelector('[for="betAmount"]').textContent = 'Bet Unit (€)';
-  }
-}
-
-// Show/hide straight number selector
 document.getElementById('betType').addEventListener('change', function() {
   document.getElementById('straightNumberGroup').style.display = this.value === 'straight' ? 'block' : 'none';
 });
 
-// ===========================
-// INIT
-// ===========================
+document.getElementById('betStrategy').addEventListener('change', function() {
+  document.getElementById('betAmountLabel').textContent = this.value === 'proportional' ? 'Bet %' : this.value === 'kelly' ? 'Fraction' : 'Bet Unit (€)';
+});
+
+document.getElementById('wheelType').addEventListener('change', function() {
+  loadPreset('fromImage', document.querySelector('.preset-btn'));
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadPreset('fromImage');
+  loadPreset('fromImage', document.querySelector('.preset-btn'));
 });
 </script>
 </body>
