@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Station 5 / Game 980 — Probability Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="full-analysis-engine.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --card: #ffffff;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --red: #dc2626;
+  --black: #1a1a1a;
+  --green: #16a34a;
+  --gold: #f59e0b;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+header { text-align: center; padding: 24px 0 16px; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+header h1 { font-size: 22px; font-weight: 700; }
+header .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card-title .icon { font-size: 18px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.stat-box { background: var(--surface); border-radius: var(--radius); padding: 12px; text-align: center; }
+.stat-box .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-box .value { font-size: 24px; font-weight: 700; margin: 4px 0; }
+.stat-box.red .value { color: var(--red); }
+.stat-box.black .value { color: var(--black); }
+.stat-box.green .value { color: var(--green); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+tr:hover { background: var(--surface); }
+.badge { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-red { background: #fef2f2; color: var(--red); }
+.badge-black { background: #f3f4f6; color: var(--black); }
+.badge-green { background: #f0fdf4; color: var(--green); }
+.badge-buy { background: #dcfce7; color: #16a34a; }
+.badge-sell { background: #fef2f2; color: #dc2626; }
+.bar-wrap { width: 100%; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; }
+.bar-red { background: var(--red); }
+.bar-black { background: var(--black); }
+.bar-green { background: var(--green); }
+canvas { max-width: 100%; }
+.loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>🎯 Station 5 / Game 980</h1>
+  <div class="sub">159 spins · 18:48 → 20:52 · ~1 min/spin · FIFO</div>
+</header>
+
+<!-- STATS ROW -->
+<div class="card">
+  <div class="card-title"><span class="icon">📊</span> Distribution</div>
+  <div class="grid-3" id="statRow">
+    <div class="stat-box red"><div class="label">Red</div><div class="value" id="statRed">—</div></div>
+    <div class="stat-box black"><div class="label">Black</div><div class="value" id="statBlack">—</div></div>
+    <div class="stat-box green"><div class="label">Zero</div><div class="value" id="statGreen">—</div></div>
+  </div>
+  <div style="margin-top:12px;">
+    <div style="display:flex; margin-bottom:4px;"><span style="width:40px;font-size:11px;">RED</span><div class="bar-wrap"><div class="bar-fill bar-red" id="barRed" style="width:0%"></div></div><span style="font-size:11px;margin-left:8px;" id="pctRed">—</span></div>
+    <div style="display:flex; margin-bottom:4px;"><span style="width:40px;font-size:11px;">BLACK</span><div class="bar-wrap"><div class="bar-fill bar-black" id="barBlack" style="width:0%"></div></div><span style="font-size:11px;margin-left:8px;" id="pctBlack">—</span></div>
+    <div style="display:flex;"><span style="width:40px;font-size:11px;">ZERO</span><div class="bar-wrap"><div class="bar-fill bar-green" id="barGreen" style="width:0%"></div></div><span style="font-size:11px;margin-left:8px;" id="pctGreen">—</span></div>
+  </div>
+</div>
+
+<!-- PER-NUMBER TABLE -->
+<div class="card">
+  <div class="card-title"><span class="icon">🔢</span> Per-Number Bayesian Analysis</div>
+  <div style="max-height:500px;overflow-y:auto;">
+  <table>
+    <thead><tr><th>#</th><th>Colour</th><th>Count</th><th>Bayesian P</th><th>95% CI</th><th>Z</th><th>EV (€1)</th></tr></thead>
+    <tbody id="numTable"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- MARKOV TRANSITIONS -->
+<div class="card">
+  <div class="card-title"><span class="icon">🔄</span> Markov Transition Matrix</div>
+  <div class="grid-2">
+    <div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Top Hot Transitions — P(next|prev) vs 2.70% expected</div>
+      <table><thead><tr><th>From</th><th>→ To</th><th>Observed</th><th>Deviation</th></tr></thead><tbody id="markovHot"></tbody></table>
+    </div>
+    <div>
+      <canvas id="markovChart" height="250"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- SERIAL ANALYSIS -->
+<div class="card">
+  <div class="card-title"><span class="icon">📈</span> Serial Dependencies</div>
+  <div class="grid-2">
+    <div>
+      <canvas id="acfChart" height="200"></canvas>
+    </div>
+    <div id="runsResult" style="font-size:13px;"></div>
+  </div>
+</div>
+
+<!-- STAT ARB -->
+<div class="card">
+  <div class="card-title"><span class="icon">⚡</span> Statistical Arbitrage</div>
+  <table><thead><tr><th>Bet</th><th>Count</th><th>Observed P</th><th>Z</th><th>p-value</th><th>Edge (€1)</th><th>Signal</th></tr></thead><tbody id="statArbTable"></tbody></table>
+</div>
+
+<!-- BACKTEST -->
+<div class="card">
+  <div class="card-title"><span class="icon">💰</span> Exhaustive Backtest — Every Bet, Full History</div>
+  <div style="max-height:400px;overflow-y:auto;">
+  <table><thead><tr><th>Rank</th><th>Bet</th><th>Net P&L (€1/spin)</th><th>ROI</th><th>Win Rate</th><th>Max DD</th></tr></thead><tbody id="backtestTable"></tbody></table>
+  </div>
+</div>
+
+<!-- FREQUENCY -->
+<div class="card">
+  <div class="card-title"><span class="icon">🌊</span> Frequency Domain — Periodic Pattern Detection</div>
+  <canvas id="freqChart" height="200"></canvas>
+  <div id="freqResult" style="font-size:13px;margin-top:8px;"></div>
+</div>
+
+<!-- CHANGEPOINT -->
+<div class="card">
+  <div class="card-title"><span class="icon">🔀</span> Changepoint Detection</div>
+  <div id="changepointResult"></div>
+</div>
+
+<!-- ML -->
+<div class="card">
+  <div class="card-title"><span class="icon">🤖</span> ML Prediction</div>
+  <div id="mlResult" style="font-size:13px;"></div>
+</div>
+
+<footer style="text-align:center;padding:20px;color:var(--muted);font-size:11px;">
+  159 spins · Station 5 / Game 980 · Hermes Monte Carlo Engine v2
+</footer>
+
+</div>
+
+<script>
+// ========== LOAD DATA ==========
+const SPINS = [20,24,25,16,35,12,21,8,0,10,13,18,29,14,21,7,31,17,35,33,27,0,16,18,15,23,17,22,10,11,10,28,16,24,14,2,29,30,11,19,12,11,0,33,14,6,36,31,24,14,5,15,22,14,13,27,25,23,19,2,21,2,3,0,10,0,23,11,19,15,15,19,35,6,20,2,15,22,4,13,12,3,31,10,13,20,23,36,0,7,2,20,21,23,7,22,30,26,13,7,22,30,13,23,7,22,30,26,13,10,4,27,6,29,23,15,5,28,4,28,12,16,9,32,26,25,14,14,16,18,28,25,11,7,19,24,11,5,18,35,28,22,32,4,19,7,26,32,1,17,13,9,12,29,25,36,15,30,2];
+
+PROB_ENGINE.load(SPINS);
+const N = PROB_ENGINE.getN();
+
+// ========== COLOUR HELPERS ==========
+function clr(n) { return n===0?'G':([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(n)?'R':'B'); }
+function clrLabel(n) { return n===0?'G':(clr(n)==='R'?'🔴':'⚫'); }
+
+// ========== STATS ==========
+const counts = PROB_ENGINE.getCounts();
+let rc=0, bc=0, gc=0;
+for (const [k,v] of Object.entries(counts)) {
+  const n=parseInt(k);
+  if (n===0) gc+=v; else if (clr(n)==='R') rc+=v; else bc+=v;
+}
+document.getElementById('statRed').textContent = (rc/N*100).toFixed(1)+'%';
+document.getElementById('statBlack').textContent = (bc/N*100).toFixed(1)+'%';
+document.getElementById('statGreen').textContent = (gc/N*100).toFixed(1)+'%';
+document.getElementById('barRed').style.width = (rc/N*100)+'%';
+document.getElementById('barBlack').style.width = (bc/N*100)+'%';
+document.getElementById('barGreen').style.width = (gc/N*100)+'%';
+document.getElementById('pctRed').textContent = rc+' spins ('+(rc/N*100).toFixed(1)+'%)';
+document.getElementById('pctBlack').textContent = bc+' spins ('+(bc/N*100).toFixed(1)+'%)';
+document.getElementById('pctGreen').textContent = gc+' spins ('+(gc/N*100).toFixed(1)+'%)';
+
+// ========== PER-NUMBER TABLE ==========
+const sorted = [];
+for (let n=0;n<=36;n++) {
+  const c = counts[n]||0;
+  if (c===0) continue;
+  const bp = (1+c)/(37+N);
+  const a = 1+c, b = 36+N-c;
+  const mu = a/(a+b);
+  const sigma = Math.sqrt(a*b/((a+b)*(a+b)*(a+b+1)));
+  const ci = [(mu-1.96*sigma)*100,(mu+1.96*sigma)*100].map(v=>v.toFixed(1));
+  const expected = N/37;
+  const z = (c-expected)/Math.sqrt(expected*(1-1/37));
+  const ev = bp*36-1;
+  sorted.push({n,c,bp,ci,z,ev});
+}
+sorted.sort((a,b)=>b.bp-a.bp);
+
+document.getElementById('numTable').innerHTML = sorted.map(d=>{
+  const zBadge = Math.abs(d.z)>2?'⚠️':'';
+  const evBadge = d.ev>0?'<span class="badge badge-buy">+€'+(d.ev).toFixed(2)+'</span>':'<span style="color:var(--muted)">€'+(d.ev).toFixed(2)+'</span>';
+  return `<tr>
+    <td><b>#${d.n}</b></td>
+    <td>${clrLabel(d.n)}</td>
+    <td>${d.c}</td>
+    <td>${(d.bp*100).toFixed(2)}%</td>
+    <td>${d.ci[0]}–${d.ci[1]}%</td>
+    <td>${d.z.toFixed(1)} ${zBadge}</td>
+    <td>${evBadge}</td>
+  </tr>`;
+}).join('');
+
+// ========== MARKOV ==========
+const markov = PROB_ENGINE.markovTransition();
+if (markov) {
+  document.getElementById('markovHot').innerHTML = markov.hotPairs.slice(0,8).map(p=>
+    `<tr><td><b>#${p.from}</b> ${clrLabel(p.from)}</td><td><b>#${p.to}</b> ${clrLabel(p.to)}</td><td>${(p.prob*100).toFixed(1)}%</td><td style="color:${p.deviation>0?'var(--green)':'var(--red)'}">${(p.deviation*100).toFixed(1)}pp</td></tr>`
+  ).join('');
+
+  // Markov entropy chart
+  const entLabels = markov.entropy.map((e,i)=>e?`#${i}`:'').filter(x=>x);
+  const entValues = markov.entropy.filter(e=>e!==null);
+  new Chart(document.getElementById('markovChart'),{
+    type:'bar',
+    data:{labels:entLabels,datasets:[{label:'Normalized Entropy (0=deterministic, 1=random)',data:entValues,backgroundColor:entValues.map(v=>v>0.95?'#16a34a':'#2563eb')}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{min:0.8,max:1.0}}}
+  });
+}
+
+// ========== ACF ==========
+const acf = PROB_ENGINE.autocorrelation(20);
+if (acf) {
+  new Chart(document.getElementById('acfChart'),{
+    type:'bar',
+    data:{labels:acf.acf.map((_,i)=>i+1),datasets:[{label:'ACF',data:acf.acf,backgroundColor:'#2563eb'}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{min:-0.3,max:0.3}}}
+  });
+  document.getElementById('runsResult').innerHTML = `
+    <b>Wald-Wolfowitz Runs Test</b><br>
+    Runs: ${acf.runsTest.runs} (expected ${acf.runsTest.expectedRuns.toFixed(0)} ± ${acf.runsTest.stdRuns.toFixed(0)})<br>
+    Z = ${acf.runsTest.zRuns.toFixed(2)} · p = ${acf.runsTest.pValue}<br>
+    <b>${acf.runsTest.random ? '✅ Data appears random (no serial dependence)' : '⚠️ Possible serial dependence detected'}</b>
+  `;
+}
+
+// ========== STAT ARB ==========
+const arb = PROB_ENGINE.statArbDetector();
+if (arb) {
+  document.getElementById('statArbTable').innerHTML = arb.signals.slice(0,10).map(s=>{
+    const sigBadge = s.signal==='ACTIONABLE'?'<span class="badge badge-buy">✅ ACTIONABLE</span>':
+      s.signal==='SUGGESTIVE'?'<span class="badge" style="background:#fef9c3;color:#854d0e">🟡 SUGGESTIVE</span>':
+      '<span style="color:var(--muted)">⚪ NOISE</span>';
+    return `<tr><td><b>${s.label||'#'+s.number}</b></td><td>${s.count}</td><td>${(s.observedP*100).toFixed(1)}%</td><td>${s.z}</td><td>${s.pValue}</td><td>${s.edge}</td><td>${sigBadge}</td></tr>`;
+  }).join('');
+}
+
+// ========== BACKTEST ==========
+const bt = PROB_ENGINE.exhaustiveBacktest();
+if (bt) {
+  document.getElementById('backtestTable').innerHTML = bt.all.slice(0,20).map((b,i)=>
+    `<tr>
+      <td>#${i+1}</td>
+      <td><b>${b.label}</b></td>
+      <td style="color:${b.netResult>0?'var(--green)':'var(--red)'}">€${b.netResult.toFixed(0)}</td>
+      <td style="color:${b.roi>0?'var(--green)':'var(--red)'}">${b.roi}%</td>
+      <td>${b.winsPct}%</td>
+      <td>€${b.maxDrawdown.toFixed(0)}</td>
+    </tr>`
+  ).join('');
+}
+
+// ========== FREQUENCY ==========
+const freq = PROB_ENGINE.frequencyAnalysis();
+if (freq) {
+  new Chart(document.getElementById('freqChart'),{
+    type:'bar',
+    data:{labels:freq.powers.map(p=>p.period),datasets:[{label:'Power',data:freq.powers.map(p=>p.normalized),backgroundColor:freq.powers.map(p=>p.normalized>0.5?'#dc2626':'#2563eb')}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Period (spins)'}}}}
+  });
+  document.getElementById('freqResult').innerHTML = freq.note;
+}
+
+// ========== CHANGEPOINT ==========
+const cp = PROB_ENGINE.changepointDetection();
+if (cp && !cp.error) {
+  document.getElementById('changepointResult').innerHTML = `
+    <b>Best changepoint: ${cp.bestChangepoint.position} spins in</b><br>
+    Pre: RED ${cp.bestChangepoint.preRed}% · GREEN ${cp.bestChangepoint.preGreen}% (${cp.bestChangepoint.preSize} spins)<br>
+    Post: RED ${cp.bestChangepoint.postRed}% · GREEN ${cp.bestChangepoint.postGreen}% (${cp.bestChangepoint.postSize} spins)<br>
+    <b>${cp.significance}</b>
+  `;
+}
+
+// ========== ML ==========
+const ml = PROB_ENGINE.mlPredict(10);
+if (ml && !ml.error) {
+  document.getElementById('mlResult').innerHTML = `
+    <b>Logistic Regression (10-spin lookback)</b><br>
+    Training accuracy: ${ml.accuracy}% · Baseline (always RED): ${ml.baseline}% · Improvement: ${ml.improvement}pp<br>
+    Current prediction: <b>${ml.currentPrediction}</b> · <b>${ml.verdict}</b><br>
+    <span style="font-size:11px;color:var(--muted)">${ml.note}</span>
+  `;
+}
+</script>
+</body>
+</html>

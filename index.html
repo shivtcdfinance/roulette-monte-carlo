@@ -340,8 +340,9 @@ textarea:focus { outline: none; border-color: var(--accent); }
   <div class="card mb-12">
     <div class="card-title">📊 Observed Counts (per number)</div>
     <div class="presets">
-      <button class="preset-btn active" onclick="loadPreset('session2',this)">📷 Image #2 — BLACK 56%</button>
-      <button class="preset-btn" onclick="loadPreset('session1',this)">📷 Image #1 — RED 51%</button>
+      <button class="preset-btn active" onclick="loadPreset('station5',this)">🎰 Stn 5 — 159 spins</button>
+      <button class="preset-btn" onclick="loadPreset('session2',this)">📷 Image #2 — B 56%</button>
+      <button class="preset-btn" onclick="loadPreset('session1',this)">📷 Image #1 — R 51%</button>
       <button class="preset-btn" onclick="loadPreset('fair',this)">Fair</button>
       <button class="preset-btn" onclick="loadPreset('redBias',this)">Red Bias</button>
       <button class="preset-btn" onclick="loadPreset('zeroBias',this)">Zero Bias</button>
@@ -1042,6 +1043,18 @@ function loadPreset(name, btn) {
       else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(redPer));
       else counts[String(num)] = Math.max(1, Math.round(blackPer));
     });
+  } else if (name === 'station5') {
+    // STATION 5 / GAME 980 — 159 spins actual per-number counts
+    counts[0] = 6; counts[1] = 1; counts[2] = 6; counts[3] = 2;
+    counts[4] = 4; counts[5] = 3; counts[6] = 3; counts[7] = 7;
+    counts[8] = 1; counts[9] = 2; counts[10] = 6; counts[11] = 6;
+    counts[12] = 5; counts[13] = 8; counts[14] = 7; counts[15] = 7;
+    counts[16] = 5; counts[17] = 3; counts[18] = 4; counts[19] = 6;
+    counts[20] = 4; counts[21] = 4; counts[22] = 7; counts[23] = 7;
+    counts[24] = 4; counts[25] = 5; counts[26] = 4; counts[27] = 3;
+    counts[28] = 5; counts[29] = 4; counts[30] = 5; counts[31] = 3;
+    counts[32] = 3; counts[33] = 2; counts[35] = 4; counts[36] = 3;
+    document.getElementById('sampleSize').value = 159;
   } else if (name === 'fair') {
     nums.forEach(num => { counts[String(num)] = Math.round(N / slots); });
   } else if (name === 'redBias') {
@@ -1893,7 +1906,7 @@ function switchSession(name, btn) {
     loadPreset('session1', null);
   } else if (name === 'session2') {
     // RED=39, BLACK=56, GREEN=5
-    loadPreset('session2', null);
+    loadPreset('station5', document.querySelector('.preset-btn'));
   } else if (name === 'combined') {
     // COMBINE: RED=90, BLACK=100, GREEN=10 (sum of both)
     const wheelType = document.getElementById('wheelType').value;
