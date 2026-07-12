@@ -416,6 +416,64 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 <!-- RIGHT: Results -->
 <div>
+
+  <!-- ===== BAYESIAN ANALYSIS — TOP (CONFIDENCE FIRST) ===== -->
+  <div class="card mb-12" id="bayesCard">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>🧮 Bayesian Per-Number Analysis</span>
+      <span style="font-size:11px;color:var(--text-dim)" id="bayesTotalLabel">100 spins loaded</span>
+    </div>
+
+    <!-- Session Combiner -->
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--border)">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--text-dim);font-weight:500">📂 Sessions:</span>
+        <button class="preset-btn active" onclick="switchSession('session2',this)" id="sessBtn2">Image #2 <span style="font-size:10px;color:var(--gold)">(R39/B56)</span></button>
+        <button class="preset-btn" onclick="switchSession('session1',this)" id="sessBtn1">Image #1 <span style="font-size:10px;color:var(--gold)">(R51/B44)</span></button>
+        <button class="preset-btn" onclick="switchSession('combined',this)" id="sessBtnComb">🔗 Combined <span style="font-size:10px;color:var(--gold)">(200 spins)</span></button>
+        <span style="font-size:11px;color:var(--text-dim);margin-left:auto">
+          Click a number count below to edit
+        </span>
+      </div>
+    </div>
+
+    <div class="bayes-info" style="margin-bottom:10px">
+      <code>P(i | data, α) = (α + countᵢ) / (N·α + total_spins)</code>
+      α = <strong>1</strong> (uniform prior)  ·  Prior: <span id="bayesPriorVal">1/37 ≈ 2.70%</span>
+    </div>
+
+    <div class="bayes-controls">
+      <label for="bayesSort" style="font-size:12px">Sort:</label>
+      <select id="bayesSort" onchange="renderBayesianTable()" style="font-size:12px">
+        <option value="probability">Bayesian P ↓</option>
+        <option value="ev">Expected Value ↓</option>
+        <option value="zscore">|Z-score| ↓</option>
+        <option value="number">Number ↑</option>
+        <option value="count">Count ↓</option>
+      </select>
+      <label for="bayesAlpha" style="font-size:12px">Prior:</label>
+      <select id="bayesAlpha" onchange="renderBayesianTable()" style="font-size:12px">
+        <option value="0.5">α=0.5</option>
+        <option value="1" selected>α=1</option>
+        <option value="2">α=2</option>
+        <option value="5">α=5</option>
+        <option value="10">α=10</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="bayesOnlyPosEV" onchange="renderBayesianTable()"> +EV only
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;margin-left:auto">
+        <input type="checkbox" id="bayesHideZero" onchange="renderBayesianTable()" checked> Hide zeros
+      </label>
+    </div>
+
+    <div id="bayesianTop3"></div>
+    <div class="bayes-table-wrap" id="bayesTableWrap" style="max-height:600px">
+      <div class="text-dim" style="font-size:13px;padding:10px">Load data to see per-number analysis</div>
+    </div>
+  </div>
+
+  <!-- ===== OPTIMAL DECISION ===== -->
   <div class="card mb-12">
     <div class="card-title">🎯 Optimal Decision</div>
     <div class="result-recommendation" id="recommendationBox">
@@ -484,46 +542,6 @@ textarea:focus { outline: none; border-color: var(--accent); }
   <div class="card mb-12" id="optimizationCard" style="display:none">
     <div class="card-title">✨ Strategy Optimization Results</div>
     <div id="optimizationResults"><div class="text-dim" style="font-size:13px">Click "Auto-Optimize" to compare hedge strategies</div></div>
-  </div>
-
-  <!-- ====== BAYESIAN PER-NUMBER ANALYSIS ====== -->
-  <div class="card mb-12" id="bayesCard">
-    <div class="card-title">🧮 Bayesian Per-Number Analysis</div>
-
-    <div class="bayes-info">
-      <strong>Bayesian Posterior Probability</strong>  ·  Dirichlet-Multinomial Conjugate Model
-      <br>
-      <code>P(i | data, α) = (α + countᵢ) / (N·α + total_spins)</code>
-      <br>
-      where <strong>α = 1</strong> (uniform Dirichlet prior), <strong>N = slots</strong>
-      <br>
-      Prior: P(i) = <span id="bayesPriorVal">1/37 ≈ 2.70%</span>  ·  Credible Interval: <span id="bayesCIInfo">Beta(α+count, (N-1)α+total-count)</span>
-    </div>
-
-    <div class="bayes-controls">
-      <label for="bayesSort">Sort by:</label>
-      <select id="bayesSort" onchange="renderBayesianTable()">
-        <option value="probability">Bayesian Probability ↓</option>
-        <option value="ev">Expected Value (€1 bet) ↓</option>
-        <option value="zscore">|Z-score| ↓</option>
-        <option value="number">Number ↑</option>
-        <option value="count">Count ↓</option>
-      </select>
-      <label for="bayesAlpha">Prior α:</label>
-      <select id="bayesAlpha" onchange="renderBayesianTable()">
-        <option value="0.5">α = 0.5 (weak prior)</option>
-        <option value="1" selected>α = 1 (uniform prior)</option>
-        <option value="2">α = 2 (medium prior)</option>
-        <option value="5">α = 5 (strong prior)</option>
-        <option value="10">α = 10 (very strong prior)</option>
-      </select>
-      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="checkbox" id="bayesOnlyPosEV" onchange="renderBayesianTable()"> Only +EV
-      </label>
-    </div>
-
-    <div id="bayesianTop3"></div>
-    <div class="bayes-table-wrap" id="bayesTableWrap"><div class="text-dim" style="font-size:13px;padding:10px">Load data to see per-number analysis</div></div>
   </div>
 
   <div class="card mb-12">
@@ -1658,6 +1676,189 @@ function autoOptimizePortfolio() {
       document.getElementById('loadingOverlay').classList.remove('show');
     }
   }, 50);
+}
+
+// ===========================
+// SESSION SWITCHER
+// ===========================
+function switchSession(name, btn) {
+  // Highlight button
+  document.querySelectorAll('#bayesCard .preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  if (name === 'session1') {
+    // RED=51, BLACK=44, GREEN=5
+    loadPreset('session1', null);
+  } else if (name === 'session2') {
+    // RED=39, BLACK=56, GREEN=5
+    loadPreset('session2', null);
+  } else if (name === 'combined') {
+    // COMBINE: RED=90, BLACK=100, GREEN=10 (sum of both)
+    const wheelType = document.getElementById('wheelType').value;
+    const nums = getWheelNumbers(wheelType);
+    const counts = {};
+    const zc = getZeroCount(wheelType);
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(10 / zc);
+      else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(90 / 18));
+      else counts[String(num)] = Math.max(1, Math.round(100 / 18));
+    });
+    renderNumberGrid(counts, wheelType);
+    document.getElementById('sampleSize').value = 200;
+  }
+  
+  document.getElementById('bayesTotalLabel').textContent = 
+    name === 'combined' ? '200 spins (combined)' : '100 spins loaded';
+  
+  // Run Bayesian table update
+  renderBayesianTable();
+  updateTopStats();
+}
+
+// ===========================
+// REDUCED BAYESIAN TABLE (editable counts)
+// ===========================
+// Override renderBayesianTable to support editable counts
+const _origRenderBayesian = renderBayesianTable;
+renderBayesianTable = function() {
+  const wheelType = document.getElementById('wheelType').value;
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  if (total === 0) return;
+
+  const alpha = parseFloat(document.getElementById('bayesAlpha').value);
+  const sortBy = document.getElementById('bayesSort').value;
+  const onlyPos = document.getElementById('bayesOnlyPosEV').checked;
+  const hideZero = document.getElementById('bayesHideZero').checked;
+  const slots = getNumSlots(wheelType);
+  const theoretical = 1 / slots;
+  const nums = getWheelNumbers(wheelType);
+
+  document.getElementById('bayesPriorVal').textContent = `1/${slots} ≈ ${(theoretical*100).toFixed(2)}%`;
+  
+  // Default sort to probability descending
+  if (!sortBy || sortBy === 'probability') {
+    document.getElementById('bayesSort').value = 'probability';
+  }
+
+  const bayesData = nums.map(num => {
+    const key = String(num);
+    const count = counts[key] || 0;
+    const bayesP = (alpha + count) / (slots * alpha + total);
+    const ci = betaCI(count, total, slots, alpha);
+    const z = zScore(count, total, slots);
+    const colour = numColor(num, wheelType);
+    const payout = 36;
+    const ev = bayesP * payout - (1 - bayesP);
+    return { num, count, bayesP, ci, z, colour, ev, theoretical };
+  });
+
+  // Filter
+  let filtered = bayesData;
+  if (onlyPos) filtered = filtered.filter(d => d.num !== 0 && d.ev > 0);
+  if (hideZero) filtered = filtered.filter(d => d.count > 0);
+
+  // Sort
+  const sortFns = {
+    probability: (a,b) => b.bayesP - a.bayesP,
+    ev: (a,b) => b.ev - a.ev,
+    zscore: (a,b) => Math.abs(b.z) - Math.abs(a.z),
+    number: (a,b) => a.num - b.num,
+    count: (a,b) => b.count - a.count
+  };
+  filtered.sort(sortFns[sortBy] || sortFns.probability);
+
+  // Top 3
+  const top3 = filtered.slice(0, 3);
+  let top3Html = '<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
+  top3.forEach((d, i) => {
+    const badge = ['🥇','🥈','🥉'][i];
+    const dot = d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫';
+    // Confidence bar
+    const ciWidth = Math.max(10, (d.ci.upper - d.ci.lower) * 500);
+    const ciMid = (d.ci.lower + d.ci.upper) / 2 * 100;
+    top3Html += `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid ${i===0?'var(--gold)':'var(--border)'}">
+      ${badge} <strong>#${d.num}</strong>${dot}
+      P=<strong style="color:var(--green-bright)">${(d.bayesP*100).toFixed(2)}%</strong>
+      <span style="font-size:10px;color:var(--text-dim)">[${(d.ci.lower*100).toFixed(1)}-${(d.ci.upper*100).toFixed(1)}%]</span>
+      EV=€${d.ev.toFixed(4)}
+      <div style="width:60px;height:4px;background:var(--surface);border-radius:2px;overflow:hidden">
+        <div style="width:${ciWidth}px;height:100%;background:${d.colour === 'red' ? '#dc2626' : d.colour === 'green' ? '#10b981' : '#64748b'};border-radius:2px"></div>
+      </div>
+    </span>`;
+  });
+  document.getElementById('bayesianTop3').innerHTML = top3Html;
+
+  // Build the table with EDITABLE counts
+  let html = `<table>
+    <tr>
+      <th>#</th><th>Colour</th>
+      <th style="cursor:pointer" onclick="sortBayes('count')">Count ⬍</th>
+      <th>Theo</th>
+      <th style="cursor:pointer" onclick="sortBayes('probability')">Bayesian P ⬍</th>
+      <th>95% CI</th>
+      <th style="cursor:pointer" onclick="sortBayes('zscore')">Z ⬍</th>
+      <th style="cursor:pointer" onclick="sortBayes('ev')">EV (€1) ⬍</th>
+    </tr>`;
+  filtered.forEach(d => {
+    const cClass = d.colour === 'red' ? 'num-red' : d.colour === 'green' ? 'num-green' : 'num-black';
+    const evClass = d.ev > 0 ? 'bayes-ev-pos' : 'bayes-ev-neg';
+    const ciWidth = Math.max(5, Math.min(80, (d.ci.upper - d.ci.lower) * 500));
+    const barColor = d.colour === 'red' ? '#dc2626' : d.colour === 'green' ? '#10b981' : '#64748b';
+    const isZSignificant = Math.abs(d.z) > 1.96;
+    
+    html += `<tr>
+      <td class="num-colour ${cClass}" style="font-size:14px;font-weight:700">${d.num}</td>
+      <td>${d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫'}</td>
+      <td><input type="number" value="${d.count}" min="0" 
+        onchange="updateNumberCount(${d.num}, this.value)"
+        style="width:50px;padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;text-align:center;font-weight:600"></td>
+      <td style="font-size:12px;color:var(--text-dim)">${(d.theoretical*100).toFixed(2)}%</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div style="width:${Math.min(60, d.bayesP * 1500)}px;height:12px;background:${barColor};border-radius:3px;opacity:0.8"></div>
+          <strong style="font-size:14px">${(d.bayesP*100).toFixed(2)}%</strong>
+        </div>
+      </td>
+      <td style="font-size:11px">
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <span style="color:var(--text-dim)">${(d.ci.lower*100).toFixed(1)}% – ${(d.ci.upper*100).toFixed(1)}%</span>
+          <div style="width:80px;height:4px;background:var(--surface);border-radius:2px;overflow:hidden">
+            <div style="margin-left:${(d.ci.lower / (1/slots)) * 50}px;width:${ciWidth}px;height:100%;background:${barColor};border-radius:2px;opacity:0.5"></div>
+          </div>
+        </div>
+      </td>
+      <td style="color:${isZSignificant ? 'var(--red)' : 'var(--text-dim)'};font-weight:${isZSignificant ? '700' : '400'}">${d.z.toFixed(2)}${isZSignificant ? ' ⚠️' : ''}</td>
+      <td class="${evClass}" style="font-size:14px;font-weight:${d.ev > 0 ? '700' : '400'}">€${d.ev.toFixed(4)}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  // Summary
+  const posCount = bayesData.filter(d => d.num !== 0 && d.ev > 0).length;
+  html += `<div class="bayes-info" style="margin-top:10px;font-size:12px">
+    📈 <strong>${posCount}/${slots}</strong> numbers with positive EV ·
+    Total data: <strong>${total}</strong> spins ·
+    α = <strong>${alpha}</strong>
+  </div>`;
+
+  document.getElementById('bayesTableWrap').innerHTML = html;
+};
+
+// ===========================
+// INLINE COUNT EDIT
+// ===========================
+function updateNumberCount(num, value) {
+  const input = document.querySelector(`.count-input[data-num="${num}"]`);
+  if (input) {
+    input.value = Math.max(0, parseInt(value) || 0);
+    onGridChange();
+  }
+}
+
+function sortBayes(by) {
+  document.getElementById('bayesSort').value = by;
+  renderBayesianTable();
 }
 </script>
 </body>
