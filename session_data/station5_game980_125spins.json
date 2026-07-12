@@ -1,12 +1,12 @@
 {
   "session": "Station 5 / Game 980",
-  "source": "User-provided raw data",
+  "source": "User-provided raw data (FIFO, corrected batch reversal)",
   "wheel_type": "european",
   "total_spins": 125,
   "order": "FIFO (position 1 = oldest, position 125 = newest)",
   "timestamp_interval_est": "~1 min per spin",
   "time_range": "18:48 → 20:52",
-  "revision": 4,
+  "revision": 5,
 
   "sequence": [
     20,24,25,16,35,12,21,8,0,10,
@@ -20,9 +20,9 @@
     12,3,31,10,13,20,23,36,0,7,
     2,20,21,23,7,22,30,26,13,7,
     22,30,13,
-    26,32,9,16,12,28,4,28,5,15,
-    23,29,6,27,4,10,13,26,30,22,
-    7,23
+    23,7,22,30,26,13,10,4,27,6,
+    29,23,15,5,28,4,28,12,16,9,
+    32,26
   ],
 
   "counts": {
