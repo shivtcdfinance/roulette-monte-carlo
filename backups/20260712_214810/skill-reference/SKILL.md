@@ -47,16 +47,6 @@ Every skill must be saved in 3 locations:
 
 Each location has a `SKILL_REFERENCE.md` listing all 3 paths and cross-references.
 
-## Related Skills (Imported Repos)
-
-Three external casino engine repos have been cloned into this project:
-
-- `roulette-physics-engine` — cschweda/metaincognita-roulette — Forward-physics wheel sim (Vue/TS dashboard, chi-square proofs)
-- `roulette-wheel-sim` — cacack/roulette-wheel — Go/Ebitengine wheel sim (phase-based ball physics)
-- `roulette-ball-tracking-cv` — anazeus1/roulette-ball-tracking — OpenCV ball tracking (Windows, student project)
-
-All 3 repos live in `~/Hermes v3/v3/projects/roulette-monte-carlo/repos/` with full SKILL_REFERENCE.md in each.
-
 ## Appending New Data
 ```python
 # Python helper to update sequence

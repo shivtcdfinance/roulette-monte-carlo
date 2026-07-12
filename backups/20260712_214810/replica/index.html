@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Roulette Dashboard Replica</title>
+<link rel="stylesheet" href="replica.css">
+</head>
+<body>
+
+<!-- EDIT OVERLAY -->
+<div class="edit-overlay" id="editOverlay">
+  <div class="edit-title">Edit <span id="editNumberLabel">#0</span> — hit count for last 100</div>
+  <div class="edit-row">
+    <input type="number" id="editCountInput" min="0" max="100" value="0">
+    <button style="background:var(--green);color:white" onclick="confirmEdit()">✓</button>
+    <button style="background:var(--panel-light);color:var(--text-dim)" onclick="closeEdit()">✗</button>
+  </div>
+</div>
+
+<div class="dashboard" id="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div>
+      <div class="title">AUTOMATED ROULETTE</div>
+      <div class="subtitle">EUROPEAN · SINGLE ZERO</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:var(--gold);font-weight:700" id="gameNumber">GAME 980</div>
+      <div style="font-size:10px;color:var(--text-dim)" id="stationLabel">STATION 5</div>
+    </div>
+  </div>
+
+  <!-- SESSION SWITCHER -->
+  <div class="session-switcher" id="sessionSwitcher">
+    <button class="session-btn" onclick="loadSession('image1',this)">📷 Img1 R51</button>
+    <button class="session-btn" onclick="loadSession('image2',this)">📷 Img2 B56</button>
+    <button class="session-btn active" onclick="loadSession('image3',this)">📷 Img3 B52</button>
+    <button class="session-btn" onclick="loadSession('combined',this)">🔗 Combined 200</button>
+    <span style="font-size:9px;color:var(--text-dim);margin-left:auto;padding:3px 6px" id="totalSpinsLabel">100 spins</span>
+  </div>
+
+  <!-- BET INFO -->
+  <div class="bet-info">
+    <div class="bet-info-item">
+      <div class="label">BET</div>
+      <div class="value gold" id="currentBet">€0.20</div>
+    </div>
+    <div class="bet-info-item">
+      <div class="label">WIN</div>
+      <div class="value green" id="currentWin">€0.00</div>
+    </div>
+    <div class="bet-info-item">
+      <div class="label">CREDITS</div>
+      <div class="value" id="credits">€30.30</div>
+    </div>
+    <div class="bet-info-item">
+      <div class="label">PROMO</div>
+      <div class="value" style="color:var(--text-dim)" id="promo">€0</div>
+    </div>
+  </div>
+  <div class="bet-limits">
+    <span>MIN TOTAL BET: <strong style="color:var(--text)">€0.10</strong></span>
+    <span>MAX TOTAL BET: <strong style="color:var(--text)">€400</strong></span>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">BETS ARE OPEN</div>
+
+  <!-- RESULTS STRIP -->
+  <div class="results-strip">
+    <div class="header">LAST 100 SPINS <span style="float:right;font-size:8px;opacity:0.5">tap a number to edit</span></div>
+    <div class="results-balls" id="resultsStrip"></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- LEFT: STATS PANEL -->
+    <div class="stats-panel" id="statsPanel">
+      <div class="stat-row">
+        <div class="stat-label">RED / BLACK</div>
+        <div class="stat-pair">
+          <div class="stat-box red-bg"><span class="stat-pct" id="redPct">43%</span><span class="stat-name">RED</span></div>
+          <div class="stat-box black-bg"><span class="stat-pct" id="blackPct">52%</span><span class="stat-name">BLACK</span></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label" style="display:flex;justify-content:space-between">ZERO <span id="greenPct" style="color:var(--green);font-weight:700">5%</span></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">EVEN / ODD</div>
+        <div class="stat-pair">
+          <div class="stat-box even-bg"><span class="stat-pct" id="evenPct">47%</span><span class="stat-name">EVEN</span></div>
+          <div class="stat-box odd-bg"><span class="stat-pct" id="oddPct">48%</span><span class="stat-name">ODD</span></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">LOW / HIGH</div>
+        <div class="stat-pair">
+          <div class="stat-box low-bg"><span class="stat-pct" id="lowPct">52%</span><span class="stat-name">1-18</span></div>
+          <div class="stat-box high-bg"><span class="stat-pct" id="highPct">43%</span><span class="stat-name">19-36</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: BOARD -->
+    <div class="board-panel">
+      <div class="board-zero" id="boardZero"></div>
+      <div class="board-grid" id="boardGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <span id="bottomGameInfo">Game number: 980</span>
+    <span id="bottomStation">Station: 5</span>
+  </div>
+
+</div>
+
+<script src="../portfolio-engine.js"></script>
+<script>
+// ===========================
+// DASHBOARD REPLICA ENGINE
+// ===========================
+
+// SESSION DATA
+const SESSIONS = {
+  image1: { red: 51, black: 44, green: 5, even: 47, odd: 48, low: 46, high: 49, total: 100, label: 'Img1 R51', game: '—', station: '—' },
+  image2: { red: 39, black: 56, green: 5, even: 43, odd: 52, low: 53, high: 42, total: 100, label: 'Img2 B56', game: '2016', station: '—' },
+  image3: { red: 43, black: 52, green: 5, even: 47, odd: 48, low: 52, high: 43, total: 100, label: 'Img3 B52', game: '980', station: '5' },
+  combined: { red: 90, black: 100, green: 10, even: 90, odd: 100, low: 99, high: 91, total: 200, label: 'Combined', game: '—', station: 'ALL' }
+};
+
+let currentSession = 'image3';
+let currentCounts = {};
+let currentResults = [];
+
+// ===========================
+// INIT
+// ===========================
+function init() {
+  loadSession('image3');
+}
+
+// ===========================
+// LOAD SESSION
+// ===========================
+function loadSession(name, btn) {
+  currentSession = name;
+  const s = SESSIONS[name];
+  if (!s) return;
+  
+  // Highlight button
+  document.querySelectorAll('.session-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  // Generate per-number counts from aggregates
+  const counts = {};
+  for (let n = 0; n <= 36; n++) {
+    if (n === 0) {
+      counts[n] = Math.round(s.green);
+    } else if (ROU.isRed(n)) {
+      counts[n] = Math.max(1, Math.round(s.red / 18));
+    } else {
+      counts[n] = Math.max(1, Math.round(s.black / 18));
+    }
+  }
+  currentCounts = counts;
+  
+  // Generate results sequence (simulated from counts)
+  currentResults = generateResults(counts, 20);
+  
+  // Update UI
+  updateStats(s);
+  updateBoard(counts, s.total);
+  updateResultsStrip(currentResults);
+  updateInfo(s);
+  
+  document.getElementById('totalSpinsLabel').textContent = s.total + ' spins';
+  document.getElementById('statusBar').textContent = 'BETS ARE OPEN · ' + s.label;
+}
+
+// ===========================
+// GENERATE RESULTS
+// ===========================
+function generateResults(counts, count) {
+  const nums = [];
+  const entries = Object.entries(counts).map(([k, v]) => ({ num: parseInt(k), weight: v }));
+  const totalWeight = entries.reduce((s, e) => s + e.weight, 0);
+  
+  for (let i = 0; i < count; i++) {
+    let r = Math.random() * totalWeight;
+    for (const e of entries) {
+      r -= e.weight;
+      if (r <= 0) { nums.push(e.num); break; }
+    }
+  }
+  return nums;
+}
+
+// ===========================
+// UPDATE STATS
+// ===========================
+function updateStats(s) {
+  document.getElementById('redPct').textContent = s.red + '%';
+  document.getElementById('blackPct').textContent = s.black + '%';
+  document.getElementById('greenPct').textContent = s.green + '%';
+  document.getElementById('evenPct').textContent = s.even + '%';
+  document.getElementById('oddPct').textContent = s.odd + '%';
+  document.getElementById('lowPct').textContent = s.low + '%';
+  document.getElementById('highPct').textContent = s.high + '%';
+}
+
+// ===========================
+// UPDATE BOARD
+// ===========================
+function updateBoard(counts, total) {
+  // Zero row
+  const zeroDiv = document.getElementById('boardZero');
+  const zeroCount = counts[0] || 0;
+  const zeroBayes = (1 + zeroCount) / (37 + total);
+  zeroDiv.innerHTML = `
+    <div class="board-cell green-cell" onclick="openEdit(0)">
+      <span class="num">0</span>
+      <div class="prob-bar" style="width:${zeroBayes * 1500}px;background:var(--green)"></div>
+      <span class="prob-label">${zeroCount}</span>
+    </div>`;
+
+  // Regular numbers in 3-column layout
+  const grid = document.getElementById('boardGrid');
+  let html = '';
+  
+  // European layout rows
+  const layout = [
+    [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
+    [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
+    [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34]
+  ];
+  
+  for (const row of layout) {
+    for (const num of row) {
+      const count = counts[num] || 0;
+      const bayesP = (1 + count) / (37 + total);
+      const colour = ROU.isRed(num) ? 'red' : 'black';
+      const cellClass = colour === 'red' ? 'red-cell' : 'black-cell';
+      
+      html += `<div class="board-cell ${cellClass}" onclick="openEdit(${num})">
+        <span class="num">${num}</span>
+        <div class="prob-bar" style="width:${Math.min(60, bayesP * 1500)}px;background:${colour === 'red' ? '#dc2626' : '#64748b'}"></div>
+        <span class="prob-label">${count}</span>
+      </div>`;
+    }
+    html += '<div style="width:100%;height:0"></div>'; // row break
+  }
+  
+  grid.innerHTML = html;
+}
+
+// ===========================
+// UPDATE RESULTS STRIP
+// ===========================
+function updateResultsStrip(results) {
+  const strip = document.getElementById('resultsStrip');
+  let html = '';
+  for (const num of results) {
+    const colour = num === 0 ? 'green' : ROU.isRed(num) ? 'red' : 'black';
+    html += `<div class="result-ball ${colour}">${num}</div>`;
+  }
+  strip.innerHTML = html;
+}
+
+// ===========================
+// UPDATE INFO
+// ===========================
+function updateInfo(s) {
+  document.getElementById('gameNumber').textContent = s.game ? `GAME ${s.game}` : 'GAME —';
+  document.getElementById('stationLabel').textContent = s.station ? `STATION ${s.station}` : 'STATION —';
+  document.getElementById('bottomGameInfo').textContent = s.game ? `Game number: ${s.game}` : 'Game: —';
+  document.getElementById('bottomStation').textContent = s.station ? `Station: ${s.station}` : 'Station: —';
+}
+
+// ===========================
+// EDIT NUMBER COUNT
+// ===========================
+let editingNumber = null;
+
+function openEdit(num) {
+  editingNumber = num;
+  document.getElementById('editNumberLabel').textContent = `#${num} (${num === 0 ? '🟢' : ROU.isRed(num) ? '🔴' : '⚫'})`;
+  document.getElementById('editCountInput').value = currentCounts[num] || 0;
+  document.getElementById('editOverlay').classList.add('show');
+}
+
+function confirmEdit() {
+  if (editingNumber === null) return;
+  const val = parseInt(document.getElementById('editCountInput').value) || 0;
+  currentCounts[editingNumber] = Math.max(0, val);
+  
+  // Recalculate totals
+  const total = Object.values(currentCounts).reduce((a, b) => a + b, 0);
+  let red = 0, black = 0, green = 0;
+  for (const [k, v] of Object.entries(currentCounts)) {
+    const n = parseInt(k);
+    if (n === 0) green += v;
+    else if (ROU.isRed(n)) red += v;
+    else black += v;
+  }
+  
+  // Update stats
+  document.getElementById('redPct').textContent = total > 0 ? Math.round(red / total * 100) + '%' : '0%';
+  document.getElementById('blackPct').textContent = total > 0 ? Math.round(black / total * 100) + '%' : '0%';
+  document.getElementById('greenPct').textContent = total > 0 ? Math.round(green / total * 100) + '%' : '0%';
+  document.getElementById('totalSpinsLabel').textContent = total + ' spins';
+  
+  // Update board
+  updateBoard(currentCounts, total);
+  
+  // Update results strip
+  currentResults = generateResults(currentCounts, 20);
+  updateResultsStrip(currentResults);
+  
+  closeEdit();
+}
+
+function closeEdit() {
+  editingNumber = null;
+  document.getElementById('editOverlay').classList.remove('show');
+}
+
+// ===========================
+// START
+// ===========================
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
