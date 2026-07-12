@@ -74,21 +74,6 @@ echo "  1️⃣  $BACKUP1/"
 echo "  2️⃣  backups/roulette_${TIMESTAMP}.tar.gz"
 echo "  3️⃣  $VAULT/"
 echo "  4️⃣  Database snapshot"
-echo "  🌐  GitHub: origin/main + gh-pages"
+echo "  🌐  GitHub: origin/main"
 echo ""
-echo "  📊 Spins: $SPINS  |  GREEN: $(python3 -c "
-import json
-with open('session_data/station5_game980_159spins.json') as f:
-    d = json.load(f)
-print(f\"{d.get('stats',{}).get('green_pct',0)}%\")
-") | RED: $(python3 -c "
-import json
-with open('session_data/station5_game980_159spins.json') as f:
-    d = json.load(f)
-print(f\"{d.get('stats',{}).get('red_pct',0)}%\")
-") | BLACK: $(python3 -c "
-import json
-with open('session_data/station5_game980_159spins.json')  as f:
-    d = json.load(f)
-print(f\"{d.get('stats',{}).get('black_pct',0)}%\")
-")"
+echo "  📊 $SPINS spins saved across all backups"
