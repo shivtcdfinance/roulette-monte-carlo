@@ -1,0 +1,118 @@
+# COMPLETE RESULT SEQUENCE — Station 5 / Game 980
+# Source: User-provided raw data
+# Order: LIFO (pos 1 = newest spin)
+# Total: 103 spins (49 new + 54 old, overlap removed)
+# 
+# The user provided 60 numbers. The last 11 (5,14,24,31,36,6,14,33,0,11,12)
+# are the overlap from the previously saved 54-spin sequence, confirming connection.
+# New spins = first 49 numbers, added BEFORE the old position 1 (5).
+
+# === NEW SPINS (positions 1-49, newest) ===
+13
+26
+30
+22
+7
+23
+21
+20
+2
+7
+0
+36
+23
+20
+13
+10
+31
+3
+12
+13
+4
+22
+15
+2
+20
+6
+35
+19
+19
+15
+15
+19
+11
+23
+0
+10
+0
+3
+2
+21
+2
+19
+23
+25
+27
+13
+14
+22
+15
+
+# === OVERLAP CONNECTION POINT ===
+# 5 ← old pos 1, confirmed correct
+
+# === OLD SPINS (positions 50-103) ===
+5
+14
+24
+31
+36
+6
+14
+33
+0
+11
+12
+19
+11
+30
+29
+2
+14
+24
+16
+28
+10
+11
+30
+15
+11
+10
+22
+17
+23
+15
+18
+16
+0
+27
+33
+35
+17
+31
+7
+21
+14
+29
+18
+13
+10
+0
+8
+21
+12
+35
+16
+25
+24
+20
