@@ -53,6 +53,28 @@ Zero:   0
 - **Black**: 2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35
 - **Green**: 0 (European), 0 & 00 (American)
 
+## Observed Data (from screenshots)
+
+### Session 1 (First image)
+| Outcome | Count (out of 100) | Percentage |
+|---|---|---|
+| **RED** | 51 | 51.0% |
+| **BLACK** | 44 | 44.0% |
+| **GREEN (Zero)** | 5 | 5.0% |
+
+### Session 2 (Second image — latest)
+| Outcome | Count (out of 100) | Percentage |
+|---|---|---|
+| **RED** | 39 | 39.0% |
+| **BLACK** | 56 | 56.0% |
+| **GREEN (Zero)** | 5 | 5.0% |
+
+### Key observations
+- Zero consistently hits at ~5.0% across both sessions (vs theoretical 2.70% — nearly double)
+- Red/Black proportions completely flipped between sessions (51→39, 44→56)
+- Bayesian analysis with Dirichlet prior smooths these observations against theoretical expectation
+- 95% credible intervals from Beta posterior show the uncertainty in each number's true probability
+
 ## Deployment
 
 This is a **pure static HTML/JS** application. No build tools, no server needed.

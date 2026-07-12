@@ -294,7 +294,8 @@ textarea:focus { outline: none; border-color: var(--accent); }
   <div class="card mb-12">
     <div class="card-title">📊 Observed Counts (per number)</div>
     <div class="presets">
-      <button class="preset-btn active" onclick="loadPreset('fromImage',this)">📷 From Your Image</button>
+      <button class="preset-btn active" onclick="loadPreset('session2',this)">📷 Image #2 — BLACK 56%</button>
+      <button class="preset-btn" onclick="loadPreset('session1',this)">📷 Image #1 — RED 51%</button>
       <button class="preset-btn" onclick="loadPreset('fair',this)">Fair</button>
       <button class="preset-btn" onclick="loadPreset('redBias',this)">Red Bias</button>
       <button class="preset-btn" onclick="loadPreset('zeroBias',this)">Zero Bias</button>
@@ -748,10 +749,19 @@ function loadPreset(name, btn) {
   const nums = getWheelNumbers(wheelType);
   const counts = {};
 
-  if (name === 'fromImage') {
-    // RED=51, BLACK=44, GREEN=5
+  if (name === 'session1') {
+    // ORIGINAL IMAGE: RED=51, BLACK=44, GREEN=5
     const redPer = (51 / 18);
     const blackPer = (44 / 18);
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(5 / getZeroCount(wheelType));
+      else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(redPer));
+      else counts[String(num)] = Math.max(1, Math.round(blackPer));
+    });
+  } else if (name === 'session2') {
+    // NEW IMAGE: RED=39, BLACK=56, GREEN=5
+    const redPer = (39 / 18);
+    const blackPer = (56 / 18);
     nums.forEach(num => {
       if (num === 0) counts['0'] = Math.round(5 / getZeroCount(wheelType));
       else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(redPer));
@@ -1186,7 +1196,7 @@ document.getElementById('wheelType').addEventListener('change', function() {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadPreset('fromImage', document.querySelector('.preset-btn'));
+  loadPreset('session2', document.querySelector('.preset-btn'));
 });
 </script>
 </body>
