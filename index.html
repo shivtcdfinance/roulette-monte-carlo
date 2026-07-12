@@ -770,6 +770,35 @@ textarea:focus { outline: none; border-color: var(--accent); }
     </div>
     <div id="trajHeatmap" style="max-height:280px;overflow-y:auto"></div>
   </div>
+
+  <!-- ===== RNG INTEGRITY TESTS ===== -->
+  <div class="card mb-12" id="rngCard" style="border-color:var(--accent)">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>🧪 RNG Integrity Tests — Zuum Terminal</span>
+      <span style="font-size:10px;color:var(--text-dim)" id="rngSummaryLabel"></span>
+    </div>
+
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px" id="rngStats"></div>
+
+    <!-- Per-number stock price table -->
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">
+      Per-Number "Stock Price" — hits per cycle · expected = 1.0/cycle · 🟢=cooling 🟠=heating
+    </div>
+    <div id="rngStockTable" style="max-height:500px;overflow-y:auto;margin-bottom:12px"></div>
+
+    <!-- Aggregate tests -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Hits Distribution vs Poisson(λ=1)</div>
+        <div style="height:180px"><canvas id="rngDistChart"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Zero Trend — hits per cycle</div>
+        <div style="height:180px"><canvas id="rngZeroChart"></canvas></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -2692,6 +2721,212 @@ function initTrajectoryEngine() {
   updateTrajectory();
 }
 document.addEventListener('DOMContentLoaded', () => setTimeout(initTrajectoryEngine, 500));
+
+// ===========================
+// RNG INTEGRITY TESTS — Zuum Terminal
+// Statistical tests to distinguish H₀ (random) from H₁ (algorithmic)
+// Uses the same TRAJ_SEQUENCE; shares TRAJ_THEORY
+// ===========================
+
+let rngDistChartInst = null;
+let rngZeroChartInst = null;
+
+function rngComputeCycles(seq, size = 37) {
+  const cycles = [];
+  for (let i = 0; i < seq.length; i += size) {
+    const spins = seq.slice(i, Math.min(i + size, seq.length));
+    const freq = {};
+    spins.forEach(n => { freq[n] = (freq[n] || 0) + 1; });
+    cycles.push({ cycle: cycles.length + 1, spins: spins.length, freq });
+  }
+  return cycles;
+}
+
+function rngPerNumberHits(seq, size = 37) {
+  const cycles = rngComputeCycles(seq, size);
+  const hits = {};
+  for (let n = 0; n <= 36; n++) {
+    hits[n] = cycles.map(c => {
+      const h = c.freq[n] || 0;
+      return c.spins < size ? h * size / c.spins : h;
+    });
+  }
+  return { cycles, hits };
+}
+
+function rngTrend(series) {
+  const n = series.length;
+  if (n < 2) return 0;
+  const xm = (n - 1) / 2, ym = series.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (i - xm) * (series[i] - ym); den += (i - xm) ** 2; }
+  return den ? num / den : 0;
+}
+
+function rngRunsZ(series, median) {
+  const above = series.filter(x => x !== median).map(x => x > median ? 1 : 0);
+  if (above.length < 2) return 0;
+  let runs = 1;
+  for (let i = 1; i < above.length; i++) if (above[i] !== above[i - 1]) runs++;
+  const n1 = above.filter(x => x === 1).length, n2 = above.length - n1;
+  if (n1 * n2 === 0) return 0;
+  const expRuns = 2 * n1 * n2 / (n1 + n2) + 1;
+  const stdRuns = Math.sqrt(2 * n1 * n2 * (2 * n1 * n2 - n1 - n2) / ((n1 + n2) ** 2 * (n1 + n2 - 1)));
+  return stdRuns ? (runs - expRuns) / stdRuns : 0;
+}
+
+function rngAutocorr(series, lag = 1) {
+  const n = series.length;
+  if (n <= lag) return 0;
+  const mean = series.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) den += (series[i] - mean) ** 2;
+  for (let i = 0; i < n - lag; i++) num += (series[i] - mean) * (series[i + lag] - mean);
+  return den ? num / den : 0;
+}
+
+function rngChiSquared(allHits) {
+  // Test against Poisson(λ=1)
+  const counts = {};
+  allHits.forEach(h => { const k = Math.min(h, 5); counts[k] = (counts[k] || 0) + 1; });
+  const total = allHits.length;
+  let chi2 = 0;
+  for (let k = 0; k <= 5; k++) {
+    const obs = counts[k] || 0;
+    const exp = total * (Math.exp(-1) * 1 ** k / factorial(k));
+    if (exp > 0) chi2 += (obs - exp) ** 2 / exp;
+  }
+  return { chi2, df: 5, ratio: chi2 / 5 };
+}
+
+function factorial(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+
+function initRNGTests() {
+  const { cycles, hits } = rngPerNumberHits(TRAJ_SEQUENCE);
+  const fullCycles = cycles.filter(c => c.spins === 37);
+  const allHits = [];
+  fullCycles.forEach(c => { for (let n = 0; n <= 36; n++) allHits.push(c.freq[n] || 0); });
+  
+  // --- Stats ---
+  const meanHits = allHits.reduce((a, b) => a + b, 0) / allHits.length;
+  const variance = allHits.reduce((s, h) => s + (h - meanHits) ** 2, 0) / (allHits.length - 1);
+  const dispersion = variance / meanHits;
+  const chi2 = rngChiSquared(allHits);
+  
+  // Lag-1 autocorrelation across all numbers
+  const acorrs = [];
+  for (let n = 0; n <= 36; n++) {
+    const raw = fullCycles.map(c => c.freq[n] || 0);
+    if (raw.length >= 2) acorrs.push(rngAutocorr(raw));
+  }
+  const meanAC = acorrs.reduce((a, b) => a + b, 0) / acorrs.length;
+  
+  // Zero trend
+  const zeroHits = hits[0].slice(0, fullCycles.length);
+  const zeroTrend = rngTrend(zeroHits);
+  const zeroRuns = rngRunsZ(zeroHits, 1.0);
+  
+  document.getElementById('rngSummaryLabel').textContent = 
+    `${TRAJ_SEQUENCE.length} spins · ${fullCycles.length} full cycles · χ²/df=${chi2.ratio.toFixed(2)} · AC=${meanAC.toFixed(3)}`;
+  
+  // --- Render stats ---
+  let verdict = chi2.ratio < 1.5 ? '✅ Random' : chi2.ratio < 2.0 ? '⚠️ Marginal' : '❌ Non-random';
+  let acVerdict = Math.abs(meanAC) < 0.1 ? '⚪ None' : meanAC < -0.15 ? '⚠️ Mean-reverting' : meanAC > 0.15 ? '⚠️ Momentum' : '⚪ Weak';
+  let dispVerdict = dispersion > 0.7 && dispersion < 1.3 ? '✅ Poisson' : '⚠️ Skewed';
+  
+  document.getElementById('rngStats').innerHTML = `
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:${chi2.ratio < 1.5 ? 'var(--green-bright)' : 'var(--gold)'}">${chi2.ratio.toFixed(2)}</div>
+      <div class="stat-label">χ²/df — ${verdict}</div>
+    </div>
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:${Math.abs(meanAC) < 0.1 ? 'var(--text-dim)' : (meanAC < 0 ? 'var(--accent)' : 'var(--red)')}">${meanAC.toFixed(3)}</div>
+      <div class="stat-label">Autocorr — ${acVerdict}</div>
+    </div>
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:${dispersion > 0.7 && dispersion < 1.3 ? 'var(--green-bright)' : 'var(--gold)'}">${dispersion.toFixed(2)}</div>
+      <div class="stat-label">Dispersion — ${dispVerdict}</div>
+    </div>
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:var(--purple)">${zeroTrend.toFixed(2)}</div>
+      <div class="stat-label">Zero Trend/cycle</div>
+    </div>`;
+  
+  // --- Stock table ---
+  let tableHtml = '<table style="font-size:10px"><tr><th>#</th>';
+  cycles.forEach(c => { tableHtml += `<th>C${c.cycle}</th>`; });
+  tableHtml += '<th>Trend</th><th>Signal</th></tr>';
+  
+  for (let n = 0; n <= 36; n++) {
+    const h = hits[n];
+    const raw = fullCycles.map(c => c.freq[n] || 0);
+    const t = rngTrend(raw);
+    let trendStr = t > 0.1 ? '↑' : t < -0.1 ? '↓' : '→';
+    let sig;
+    if (t < -0.15 && h[h.length - 1] < 0.5) sig = '🟢 BUY';
+    else if (t > 0.15 && h[h.length - 1] > 1.5) sig = '🔴 SELL';
+    else if (t < -0.1) sig = '🟡 cool';
+    else if (t > 0.1) sig = '🟠 heat';
+    else sig = '⚪';
+    
+    tableHtml += '<tr>';
+    const nc = n === 0 ? 'var(--green-bright)' : (isRed(n) ? 'var(--red)' : '#94a3b8');
+    tableHtml += `<td style="color:${nc};font-weight:700">${n}</td>`;
+    h.forEach(v => { tableHtml += `<td>${v.toFixed(1)}</td>`; });
+    tableHtml += `<td style="color:${t<0?'var(--accent)':t>0?'var(--red)':'var(--text-dim)'}">${trendStr} ${Math.abs(t).toFixed(2)}</td>`;
+    tableHtml += `<td>${sig}</td></tr>`;
+  }
+  tableHtml += '</table>';
+  document.getElementById('rngStockTable').innerHTML = tableHtml;
+  
+  // --- Distribution chart ---
+  const counts = {};
+  allHits.forEach(h => { const k = Math.min(h, 5); counts[k] = (counts[k] || 0) + 1; });
+  const ctx1 = document.getElementById('rngDistChart').getContext('2d');
+  if (rngDistChartInst) rngDistChartInst.destroy();
+  const totalObs = allHits.length;
+  rngDistChartInst = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: ['0','1','2','3','4','5+'],
+      datasets: [
+        { label: 'Observed', data: [0,1,2,3,4,5].map(k => counts[k] || 0), backgroundColor: 'rgba(59,130,246,0.6)', borderWidth: 0, borderRadius: 3 },
+        { label: 'Poisson(λ=1)', data: [0,1,2,3,4,5].map(k => totalObs * Math.exp(-1) * 1**k / factorial(k)), backgroundColor: 'rgba(245,158,11,0.3)', borderColor: 'rgba(245,158,11,0.8)', borderWidth: 1, type: 'line', pointRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8899aa', font: { size: 10 }, boxWidth: 12 } } },
+      scales: { x: { ticks: { color: '#556', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#556', font: { size: 9 } }, grid: { color: 'rgba(30,48,68,0.3)' } } }
+    }
+  });
+  
+  // --- Zero trend chart ---
+  const ctx2 = document.getElementById('rngZeroChart').getContext('2d');
+  if (rngZeroChartInst) rngZeroChartInst.destroy();
+  rngZeroChartInst = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: fullCycles.map(c => `C${c.cycle}`),
+      datasets: [
+        { label: 'Zero hits', data: zeroHits, borderColor: '#10b981', backgroundColor: 'rgba(5,150,105,0.15)', fill: true, tension: 0.2, pointRadius: 5, pointBackgroundColor: '#10b981', borderWidth: 2.5 },
+        { label: 'Expected (1.0)', data: zeroHits.map(() => 1), borderColor: 'rgba(245,158,11,0.6)', borderDash: [6,4], borderWidth: 1.5, pointRadius: 0, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8899aa', font: { size: 10 }, boxWidth: 12 } } },
+      scales: { x: { ticks: { color: '#556', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#556', font: { size: 9 }, stepSize: 1 }, grid: { color: 'rgba(30,48,68,0.3)' }, min: 0 } }
+    }
+  });
+}
+
+// Extend init to also bootstrap RNG tests
+const _origInitTraj = initTrajectoryEngine;
+initTrajectoryEngine = function() {
+  _origInitTraj();
+  initRNGTests();
+};
 </script>
 </body>
 </html>
