@@ -202,6 +202,49 @@ td.num-colour { font-weight: 700; }
 .preset-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(59,130,246,0.1); }
 .preset-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(245,158,11,0.1); }
 
+/* === REPLICA DASHBOARD STYLES === */
+.replica-board { display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface2);border-radius:8px;overflow:hidden; }
+.replica-stats { padding:10px;background:var(--surface);border-right:1px solid var(--border); }
+.replica-stats .rs-row { margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(61,26,26,0.3); }
+.replica-stats .rs-row:last-child { border-bottom:none;margin-bottom:0;padding-bottom:0; }
+.replica-stats .rs-label { font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px; }
+.replica-stats .rs-pair { display:flex;gap:4px; }
+.replica-stats .rs-box { flex:1;padding:4px 6px;border-radius:4px;text-align:center;font-size:11px;font-weight:700; }
+.replica-stats .rs-box .rs-pct { font-size:15px;display:block; }
+.replica-stats .rs-box .rs-name { font-size:8px;opacity:0.7; }
+.rs-box.red-bg { background:rgba(220,38,38,0.12);color:var(--red); }
+.rs-box.black-bg { background:rgba(30,41,59,0.4);color:#94a3b8; }
+.rs-box.green-bg { background:rgba(5,150,105,0.12);color:var(--green); }
+.rs-box.even-bg { background:rgba(59,130,246,0.1);color:var(--accent); }
+.rs-box.odd-bg { background:rgba(245,158,11,0.1);color:var(--gold); }
+.rs-box.low-bg { background:rgba(139,92,246,0.1);color:#a78bfa; }
+.rs-box.high-bg { background:rgba(236,72,153,0.1);color:#f472b6; }
+
+.replica-board-right { padding:8px;background:var(--surface); }
+.rep-zero { display:flex;gap:2px;margin-bottom:4px; }
+.rep-grid { display:grid;grid-template-columns:repeat(6,1fr);gap:2px; }
+.rep-cell { padding:3px 2px;border-radius:3px;text-align:center;font-size:9px;font-weight:700;cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;min-height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center; }
+.rep-cell:hover { transform:scale(1.08);z-index:2; }
+.rep-cell .rnum { position:relative;z-index:1;font-size:10px; }
+.rep-cell .rpbar { position:absolute;bottom:0;left:0;height:3px;border-radius:0 2px 0 0;opacity:0.8;transition:width 0.3s; }
+.rep-cell .rcount { position:relative;z-index:1;font-size:7px;opacity:0.7;margin-top:1px; }
+.rep-cell.red-cell { background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.25); }
+.rep-cell.red-cell .rnum { color:var(--red); }
+.rep-cell.black-cell { background:rgba(30,41,59,0.3);border:1px solid rgba(100,116,139,0.15); }
+.rep-cell.black-cell .rnum { color:#94a3b8; }
+.rep-cell.green-cell { background:rgba(5,150,105,0.12);border:1px solid rgba(5,150,105,0.25); }
+.rep-cell.green-cell .rnum { color:var(--green); }
+
+.rep-results { display:flex;gap:3px;overflow-x:auto;padding:4px 0; }
+.rep-ball { width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.15s; }
+.rep-ball:hover { transform:scale(1.15); }
+.rep-ball.rball-red { background:var(--red);color:white; }
+.rep-ball.rball-black { background:#333;color:white;border-color:#555; }
+.rep-ball.rball-green { background:var(--green);color:white; }
+.rep-ball.rball-removed { opacity:0.3;text-decoration:line-through; }
+.rep-add-btn { display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px dashed var(--border);color:var(--text-dim);font-size:14px;cursor:pointer;flex-shrink:0; }
+.rep-add-btn:hover { border-color:var(--green);color:var(--green); }
+
 textarea { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: monospace; font-size: 12px; resize: vertical; min-height: 60px; }
 textarea:focus { outline: none; border-color: var(--accent); }
 .help-text { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
@@ -416,6 +459,64 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 <!-- RIGHT: Results -->
 <div>
+
+  <!-- ===== DASHBOARD REPLICA ===== -->
+  <div class="card mb-12" id="replicaCard">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>🎰 Dashboard Replica</span>
+      <span style="font-size:11px;color:var(--text-dim);display:flex;gap:8px;align-items:center">
+        <span id="repTotalLabel">100 spins</span>
+        <span id="repGameLabel" style="color:var(--gold)">GAME 980</span>
+      </span>
+    </div>
+
+    <!-- Session Row -->
+    <div style="background:var(--surface2);border-radius:8px;padding:6px 10px;margin-bottom:10px;border:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:10px;color:var(--text-dim);font-weight:500">📂</span>
+      <button class="preset-btn" onclick="repLoadSession('image1',this)">Img1 R51</button>
+      <button class="preset-btn" onclick="repLoadSession('image2',this)">Img2 B56</button>
+      <button class="preset-btn active" onclick="repLoadSession('image3',this)">Img3 B52</button>
+      <button class="preset-btn" onclick="repLoadSession('combined',this)">Combined</button>
+    </div>
+
+    <!-- Results Strip -->
+    <div class="rep-results" id="repResults"></div>
+    <div style="font-size:9px;color:var(--text-dim);margin:4px 0 8px 0">Tap ball to remove · <span style="cursor:pointer;color:var(--accent)" onclick="repAddBall()">+ add ball</span> · <span style="cursor:pointer;color:var(--green)" onclick="repRegenerate()">⟳ regenerate from counts</span></div>
+
+    <!-- Replica Board -->
+    <div class="replica-board">
+      <div class="replica-stats">
+        <div class="rs-row">
+          <div class="rs-label">RED / BLACK</div>
+          <div class="rs-pair">
+            <div class="rs-box red-bg"><span class="rs-pct" id="repRed">43%</span><span class="rs-name">RED</span></div>
+            <div class="rs-box black-bg"><span class="rs-pct" id="repBlack">52%</span><span class="rs-name">BLACK</span></div>
+          </div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-label">ZERO <span id="repGreen" style="color:var(--green);font-weight:700">5%</span></div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-label">EVEN / ODD</div>
+          <div class="rs-pair">
+            <div class="rs-box even-bg"><span class="rs-pct" id="repEven">47%</span><span class="rs-name">EVEN</span></div>
+            <div class="rs-box odd-bg"><span class="rs-pct" id="repOdd">48%</span><span class="rs-name">ODD</span></div>
+          </div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-label">LOW / HIGH</div>
+          <div class="rs-pair">
+            <div class="rs-box low-bg"><span class="rs-pct" id="repLow">52%</span><span class="rs-name">1-18</span></div>
+            <div class="rs-box high-bg"><span class="rs-pct" id="repHigh">43%</span><span class="rs-name">19-36</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="replica-board-right">
+        <div class="rep-zero" id="repZero"></div>
+        <div class="rep-grid" id="repGrid"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== BAYESIAN ANALYSIS — TOP (CONFIDENCE FIRST) ===== -->
   <div class="card mb-12" id="bayesCard">
@@ -1265,11 +1366,8 @@ document.getElementById('wheelType').addEventListener('change', function() {
   loadPreset('fromImage', document.querySelector('.preset-btn'));
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadPreset('session2', document.querySelector('.preset-btn'));
-  addPortfolioBet(); // Start with 2 default bets
-  addPortfolioBet();
-});
+// Init — let the replica handle primary load
+// The replica init (at the end of the file) takes care of everything
 
 // ===========================
 // PORTFOLIO BUILDER UI
@@ -1860,6 +1958,186 @@ function sortBayes(by) {
   document.getElementById('bayesSort').value = by;
   renderBayesianTable();
 }
+
+// ===========================
+// REPLICA DASHBOARD ENGINE
+// ===========================
+const REP_SESSIONS = {
+  image1: { red:51, black:44, green:5, even:47, odd:48, low:46, high:49, total:100, game:'—', station:'—' },
+  image2: { red:39, black:56, green:5, even:43, odd:52, low:53, high:42, total:100, game:'2016', station:'—' },
+  image3: { red:43, black:52, green:5, even:47, odd:48, low:52, high:43, total:100, game:'980', station:'5' },
+  combined:{ red:90, black:100, green:10, even:90, odd:100, low:99, high:91, total:200, game:'—', station:'ALL' }
+};
+let repCounts = {};
+let repResults = [];
+
+function repLoadSession(name, btn) {
+  document.querySelectorAll('#replicaCard .preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  const s = REP_SESSIONS[name];
+  if (!s) return;
+  
+  // Fill counts from aggregates — also sync main grid
+  const counts = {};
+  for (let n = 0; n <= 36; n++) {
+    if (n === 0) counts[n] = Math.round(s.green);
+    else if (ROU.isRed(n)) counts[n] = Math.max(1, Math.round(s.red / 18));
+    else counts[n] = Math.max(1, Math.round(s.black / 18));
+  }
+  repCounts = counts;
+  
+  // Sync the main number grid
+  const wheelType = document.getElementById('wheelType').value;
+  const nums = getWheelNumbers(wheelType);
+  const gridCounts = {};
+  nums.forEach(num => { gridCounts[String(num)] = counts[num] || 0; });
+  renderNumberGrid(gridCounts, wheelType);
+  document.getElementById('sampleSize').value = s.total;
+  
+  repResults = repGenerateResults(counts, 20);
+  repRenderAll(s);
+}
+
+function repRenderAll(s) {
+  document.getElementById('repRed').textContent = s.red + '%';
+  document.getElementById('repBlack').textContent = s.black + '%';
+  document.getElementById('repGreen').textContent = s.green + '%';
+  document.getElementById('repEven').textContent = s.even + '%';
+  document.getElementById('repOdd').textContent = s.odd + '%';
+  document.getElementById('repLow').textContent = s.low + '%';
+  document.getElementById('repHigh').textContent = s.high + '%';
+  document.getElementById('repTotalLabel').textContent = s.total + ' spins';
+  document.getElementById('repGameLabel').textContent = s.game ? 'GAME ' + s.game : '—';
+  
+  repRenderBoard();
+  repRenderResults();
+}
+
+function repRenderBoard() {
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  
+  // Zero
+  const zc = repCounts[0] || 0;
+  const zBayes = (1 + zc) / (37 + total);
+  document.getElementById('repZero').innerHTML =
+    `<div class="rep-cell green-cell" onclick="repOpenEdit(0)">
+      <span class="rnum">0</span>
+      <div class="rpbar" style="width:${Math.min(60, zBayes*1500)}px;background:var(--green)"></div>
+      <span class="rcount">${zc}</span>
+    </div>`;
+  
+  // Grid
+  const layout = [
+    [3,6,9,12,15,18,21,24,27,30,33,36],
+    [2,5,8,11,14,17,20,23,26,29,32,35],
+    [1,4,7,10,13,16,19,22,25,28,31,34]
+  ];
+  let html = '';
+  for (const row of layout) {
+    for (const num of row) {
+      const c = repCounts[num] || 0;
+      const bp = (1 + c) / (37 + total);
+      const col = ROU.isRed(num) ? 'red' : 'black';
+      html += `<div class="rep-cell ${col}-cell" onclick="repOpenEdit(${num})">
+        <span class="rnum">${num}</span>
+        <div class="rpbar" style="width:${Math.min(60, bp*1500)}px;background:${col==='red'?'#dc2626':'#64748b'}"></div>
+        <span class="rcount">${c}</span>
+      </div>`;
+    }
+  }
+  document.getElementById('repGrid').innerHTML = html;
+}
+
+function repRenderResults() {
+  let html = '';
+  for (const num of repResults) {
+    const col = num === 0 ? 'green' : ROU.isRed(num) ? 'red' : 'black';
+    html += `<div class="rep-ball rball-${col}" onclick="repRemoveBall(this,${num})">${num}</div>`;
+  }
+  html += `<div class="rep-add-btn" onclick="repAddBall()">+</div>`;
+  document.getElementById('repResults').innerHTML = html;
+}
+
+function repGenerateResults(counts, count) {
+  const entries = Object.entries(counts).map(([k,v]) => ({ num:parseInt(k), weight:v }));
+  const totalW = entries.reduce((s,e) => s + e.weight, 0);
+  const nums = [];
+  for (let i = 0; i < count; i++) {
+    let r = Math.random() * totalW;
+    for (const e of entries) { r -= e.weight; if (r <= 0) { nums.push(e.num); break; } }
+  }
+  return nums;
+}
+
+function repRemoveBall(el, num) {
+  repResults = repResults.filter(n => n !== num);
+  repRenderResults();
+}
+
+function repAddBall() {
+  // Add a new ball with weighted random
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  let r = Math.random() * total;
+  let chosen = 0;
+  for (const [k, v] of Object.entries(repCounts)) {
+    r -= v;
+    if (r <= 0) { chosen = parseInt(k); break; }
+  }
+  repResults.push(chosen);
+  repRenderResults();
+  repUpdateAggregates();
+}
+
+function repRegenerate() {
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  repResults = repGenerateResults(repCounts, Math.max(10, Math.min(50, Math.round(total/5))));
+  repRenderResults();
+}
+
+function repOpenEdit(num) {
+  // Use the same edit overlay as the main Bayesian table — update the grid count
+  const input = document.querySelector(`.count-input[data-num="${num}"]`);
+  if (input) {
+    const newVal = prompt(`Enter count for #${num}:`, input.value);
+    if (newVal !== null && !isNaN(parseInt(newVal))) {
+      input.value = Math.max(0, parseInt(newVal));
+      onGridChange();
+      // Refresh replica from grid
+      const counts = getCountsFromGrid();
+      repCounts = {};
+      for (const [k, v] of Object.entries(counts)) repCounts[parseInt(k)] = v;
+      const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+      document.getElementById('repTotalLabel').textContent = total + ' spins';
+      repRenderBoard();
+      repRenderResults();
+    }
+  }
+}
+
+function repUpdateAggregates() {
+  // Recalculate aggregates from repCounts
+  let red = 0, black = 0, green = 0, total = 0;
+  for (const [k, v] of Object.entries(repCounts)) {
+    const n = parseInt(k);
+    total += v;
+    if (n === 0) green += v;
+    else if (ROU.isRed(n)) red += v;
+    else black += v;
+  }
+  if (total > 0) {
+    document.getElementById('repRed').textContent = Math.round(red/total*100) + '%';
+    document.getElementById('repBlack').textContent = Math.round(black/total*100) + '%';
+    document.getElementById('repGreen').textContent = Math.round(green/total*100) + '%';
+    document.getElementById('repTotalLabel').textContent = total + ' spins';
+  }
+  repRenderBoard();
+}
+
+// Init replica on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => repLoadSession('image3', document.querySelector('#replicaCard .preset-btn.active')), 100);
+});
 </script>
 </body>
 </html>
