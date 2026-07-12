@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roulette Monte Carlo Simulator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="portfolio-engine.js"></script>
+<script src="dashboard-analyzer.js"></script>
+<script src="full-analysis-engine.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface2: #1a2332;
+  --border: #1e3044;
+  --text: #e2e8f0;
+  --text-dim: #8899aa;
+  --red: #dc2626;
+  --red-dim: #7f1d1d;
+  --black: #1e293b;
+  --green: #059669;
+  --green-bright: #10b981;
+  --gold: #f59e0b;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --purple: #a855f7;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.header h1 span { color: var(--gold); }
+.header .subtitle { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+.container { max-width: 1440px; margin: 0 auto; padding: 20px 24px; display: grid; gap: 20px; }
+.grid-2 { display: grid; grid-template-columns: 420px 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 4px; font-weight: 500; }
+.form-group select, .form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  transition: border 0.2s;
+}
+.form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: white; width: 100%; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-danger { background: var(--red); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+.stat-card { text-align: center; padding: 16px; }
+.stat-value { font-size: 32px; font-weight: 700; line-height: 1.2; }
+.stat-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-red .stat-value { color: var(--red); }
+.stat-black .stat-value { color: #94a3b8; }
+.stat-green .stat-value { color: var(--green-bright); }
+.stat-gold .stat-value { color: var(--gold); }
+
+.percentile-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
+.percentile-bar .label { width: 40px; color: var(--text-dim); text-align: right; }
+.percentile-bar .track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.percentile-bar .fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.percentile-bar .val { width: 60px; text-align: right; font-weight: 600; font-size: 12px; }
+
+.data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.data-cell { text-align: center; padding: 6px 4px; background: var(--surface2); border-radius: 4px; font-size: 12px; }
+.data-cell .num { font-weight: 600; font-size: 11px; }
+.data-cell .count { font-size: 11px; color: var(--text-dim); }
+.data-cell input { width: 100%; text-align: center; background: transparent; border: 1px solid transparent; color: var(--text); font-size: 11px; padding: 2px; border-radius: 3px; }
+.data-cell input:focus { border-color: var(--accent); outline: none; background: rgba(59,130,246,0.1); }
+.cell-red { border-left: 3px solid var(--red); }
+.cell-black { border-left: 3px solid #475569; }
+.cell-green { border-left: 3px solid var(--green); }
+
+.result-recommendation {
+  background: linear-gradient(135deg, #1a2332, #0f172a);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.result-rec-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.result-rec-value { font-size: 28px; font-weight: 700; color: var(--gold); margin: 4px 0; }
+.result-rec-sub { font-size: 13px; color: var(--text-dim); }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--surface2); padding: 4px; border-radius: 8px; }
+.tab { padding: 8px 16px; border: none; background: transparent; color: var(--text-dim); font-size: 13px; cursor: pointer; border-radius: 6px; transition: all 0.2s; font-weight: 500; }
+.tab.active { background: var(--accent); color: white; }
+.tab:hover:not(.active) { color: var(--text); }
+
+.results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.result-item { padding: 12px; background: var(--surface2); border-radius: 8px; }
+.result-item .label { font-size: 11px; color: var(--text-dim); }
+.result-item .value { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+.chart-container { height: 280px; margin-top: 12px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 10px; color: var(--text-dim); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: rgba(59,130,246,0.05); }
+.best-row td { background: rgba(16,185,129,0.08); }
+.best-row td:first-child { border-left: 2px solid var(--green-bright); }
+
+.log-container { max-height: 300px; overflow-y: auto; }
+.log-entry { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.log-entry .time { color: var(--text-dim); margin-right: 8px; }
+.log-entry .bet { color: var(--gold); font-weight: 600; }
+.log-entry .prob { color: var(--green-bright); }
+.log-entry .ev { color: var(--accent); }
+
+.analysis-row { display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.analysis-row .metric { font-size: 13px; flex: 1; }
+.analysis-row .status { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.status-pass { background: rgba(16,185,129,0.15); color: var(--green-bright); }
+.status-warn { background: rgba(245,158,11,0.15); color: var(--gold); }
+.status-fail { background: rgba(220,38,38,0.15); color: var(--red); }
+
+.bias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 4px; margin-top: 8px; }
+.bias-item { text-align: center; padding: 6px; border-radius: 4px; font-size: 11px; }
+.bias-item .num { font-weight: 600; }
+.bias-item .zscore { font-size: 10px; }
+.bias-over { background: rgba(220,38,38,0.1); }
+.bias-under { background: rgba(59,130,246,0.1); }
+.bias-normal { background: var(--surface2); }
+
+/* ===== BAYESIAN TABLE ===== */
+.bayes-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.bayes-controls label { font-size: 12px; color: var(--text-dim); }
+.bayes-controls select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+.bayes-controls select:focus { border-color: var(--accent); outline: none; }
+.bayes-info { font-size: 12px; color: var(--text-dim); background: var(--surface2); padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid var(--purple); }
+.bayes-info code { color: var(--gold); font-weight: 600; }
+
+.bayes-table-wrap { max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.bayes-table-wrap table { font-size: 12px; }
+.bayes-table-wrap th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.bayes-table-wrap td { font-variant-numeric: tabular-nums; }
+
+td.num-colour { font-weight: 700; }
+.num-red { color: var(--red); }
+.num-black { color: #94a3b8; }
+.num-green { color: var(--green-bright); }
+
+.bayes-bar { display: inline-block; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+.bayes-ev-pos { color: var(--green-bright); }
+.bayes-ev-neg { color: var(--red); }
+
+.top3-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 700;
+}
+.badge-1 { background: var(--gold); color: #000; }
+.badge-2 { background: #94a3b8; color: #000; }
+.badge-3 { background: #78350f; color: var(--gold); }
+
+.presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.preset-btn { padding: 4px 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.preset-btn:hover { border-color: var(--accent); color: var(--text); background: rgba(59,130,246,0.1); }
+.preset-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(245,158,11,0.1); }
+
+/* === REPLICA DASHBOARD STYLES === */
+.replica-board { display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface2);border-radius:8px;overflow:hidden; }
+.replica-stats { padding:10px;background:var(--surface);border-right:1px solid var(--border); }
+.replica-stats .rs-row { margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(61,26,26,0.3); }
+.replica-stats .rs-row:last-child { border-bottom:none;margin-bottom:0;padding-bottom:0; }
+.replica-stats .rs-label { font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px; }
+.replica-stats .rs-pair { display:flex;gap:4px; }
+.replica-stats .rs-box { flex:1;padding:4px 6px;border-radius:4px;text-align:center;font-size:11px;font-weight:700; }
+.replica-stats .rs-box .rs-pct { font-size:15px;display:block; }
+.replica-stats .rs-box .rs-name { font-size:8px;opacity:0.7; }
+.rs-box.red-bg { background:rgba(220,38,38,0.12);color:var(--red); }
+.rs-box.black-bg { background:rgba(30,41,59,0.4);color:#94a3b8; }
+.rs-box.green-bg { background:rgba(5,150,105,0.12);color:var(--green); }
+.rs-box.even-bg { background:rgba(59,130,246,0.1);color:var(--accent); }
+.rs-box.odd-bg { background:rgba(245,158,11,0.1);color:var(--gold); }
+.rs-box.low-bg { background:rgba(139,92,246,0.1);color:#a78bfa; }
+.rs-box.high-bg { background:rgba(236,72,153,0.1);color:#f472b6; }
+
+.replica-board-right { padding:8px;background:var(--surface); }
+.rep-zero { display:flex;gap:2px;margin-bottom:4px; }
+.rep-grid { display:grid;grid-template-columns:repeat(6,1fr);gap:2px; }
+.rep-cell { padding:3px 2px;border-radius:3px;text-align:center;font-size:9px;font-weight:700;cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;min-height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center; }
+.rep-cell:hover { transform:scale(1.08);z-index:2; }
+.rep-cell .rnum { position:relative;z-index:1;font-size:10px; }
+.rep-cell .rpbar { position:absolute;bottom:0;left:0;height:3px;border-radius:0 2px 0 0;opacity:0.8;transition:width 0.3s; }
+.rep-cell .rcount { position:relative;z-index:1;font-size:7px;opacity:0.7;margin-top:1px; }
+.rep-cell.red-cell { background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.25); }
+.rep-cell.red-cell .rnum { color:var(--red); }
+.rep-cell.black-cell { background:rgba(30,41,59,0.3);border:1px solid rgba(100,116,139,0.15); }
+.rep-cell.black-cell .rnum { color:#94a3b8; }
+.rep-cell.green-cell { background:rgba(5,150,105,0.12);border:1px solid rgba(5,150,105,0.25); }
+.rep-cell.green-cell .rnum { color:var(--green); }
+
+.rep-results { display:flex;gap:3px;overflow-x:auto;padding:4px 0; }
+.rep-ball { width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:transform 0.15s; }
+.rep-ball:hover { transform:scale(1.15); }
+.rep-ball.rball-red { background:var(--red);color:white; }
+.rep-ball.rball-black { background:#333;color:white;border-color:#555; }
+.rep-ball.rball-green { background:var(--green);color:white; }
+.rep-ball.rball-removed { opacity:0.3;text-decoration:line-through; }
+.rep-add-btn { display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px dashed var(--border);color:var(--text-dim);font-size:14px;cursor:pointer;flex-shrink:0; }
+.rep-add-btn:hover { border-color:var(--green);color:var(--green); }
+
+textarea { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: monospace; font-size: 12px; resize: vertical; min-height: 60px; }
+textarea:focus { outline: none; border-color: var(--accent); }
+.help-text { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+.loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+.loading-overlay.show { display: flex; }
+.loading-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; text-align: center; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.mt-12 { margin-top: 12px; }
+.mb-12 { margin-bottom: 12px; }
+.text-center { text-align: center; }
+.text-dim { color: var(--text-dim); }
+.flex { display: flex; gap: 12px; align-items: center; }
+
+@media (max-width: 1024px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .grid-3 { grid-template-columns: 1fr; }
+  .data-grid { grid-template-columns: repeat(5, 1fr); }
+  .header h1 { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div style="font-size:14px;color:var(--text-dim)">Running Monte Carlo simulations...<br>
+    <span id="loadingStatus" style="font-size:12px;color:var(--gold);margin-top:8px;display:block"></span></div>
+  </div>
+</div>
+
+<header class="header">
+  <div>
+    <h1>🎲 <span>Monte Carlo</span> Roulette</h1>
+    <div class="subtitle">Bayesian decision engine · probability-based simulation · per-number analysis</div>
+  </div>
+  <div style="font-size:12px;color:var(--text-dim)">
+    <span id="engineStatus">Engine ready</span>
+  </div>
+</header>
+
+<div class="container">
+
+<div class="grid-3" id="quickStats">
+  <div class="card stat-card stat-red">
+    <div class="stat-value" id="displayRed">0</div>
+    <div class="stat-label">Red % (observed)</div>
+  </div>
+  <div class="card stat-card stat-black">
+    <div class="stat-value" id="displayBlack">0</div>
+    <div class="stat-label">Black % (observed)</div>
+  </div>
+  <div class="card stat-card stat-green">
+    <div class="stat-value" id="displayGreen">0</div>
+    <div class="stat-label">Green % (observed)</div>
+  </div>
+</div>
+
+<div class="grid-2">
+
+<!-- LEFT: Input -->
+<div>
+  <div class="card mb-12">
+    <div class="card-title">🎯 Game Configuration</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Wheel Type</label>
+        <select id="wheelType">
+          <option value="european">European (37 slots, single 0)</option>
+          <option value="american">American (38 slots, 0 + 00)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sample Size (N)</label>
+        <input type="number" id="sampleSize" value="100" min="10" max="10000">
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">📊 Observed Counts (per number)</div>
+    <div class="presets">
+      <button class="preset-btn active" onclick="loadPreset('station5',this)">🎰 Stn 5 — 159 spins</button>
+      <button class="preset-btn" onclick="loadPreset('session2',this)">📷 Image #2 — B 56%</button>
+      <button class="preset-btn" onclick="loadPreset('session1',this)">📷 Image #1 — R 51%</button>
+      <button class="preset-btn" onclick="loadPreset('fair',this)">Fair</button>
+      <button class="preset-btn" onclick="loadPreset('redBias',this)">Red Bias</button>
+      <button class="preset-btn" onclick="loadPreset('zeroBias',this)">Zero Bias</button>
+      <button class="preset-btn" onclick="loadPreset('random',this)">Random</button>
+    </div>
+    <div class="data-grid" id="numberGrid"></div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">⚡ Quick Aggregate</div>
+    <div class="form-row">
+      <div class="form-group"><label>Red Count</label><input type="number" id="aggRed" value="51" min="0"></div>
+      <div class="form-group"><label>Black Count</label><input type="number" id="aggBlack" value="44" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Zero(s) Count</label><input type="number" id="aggGreen" value="5" min="0"></div>
+      <div class="form-group"><label>Even / Odd (optional)</label><input type="text" id="aggEvenOdd" placeholder="e.g. 48,47"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Low (1-18) / High (19-36)</label><input type="text" id="aggLowHigh" placeholder="e.g. 46,49"></div>
+      <div class="form-group">
+        <label style="visibility:hidden">x</label>
+        <button class="btn btn-outline" onclick="applyAggregate()" style="width:100%">Apply → Distribute</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">📋 Result Sequence (optional — overrides counts)</div>
+    <textarea id="sequenceInput" placeholder="Paste a sequence: numbers or R/B colours separated by comma or space&#10;e.g. 0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5&#10;e.g. R,B,B,R,R,R,B,R,B,B,R,R,B,R,B,B,R,R,R,B"></textarea>
+    <div class="help-text">Numbers (0-36) or colours (R/B/G) separated by comma, space, or newline</div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">💰 Betting Parameters</div>
+    <div class="form-row">
+      <div class="form-group"><label>Starting Bankroll (€)</label><input type="number" id="bankroll" value="100" min="1" step="10"></div>
+      <div class="form-group"><label>Expected Iterations</label><input type="number" id="iterations" value="50" min="1" max="100000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bet Type</label>
+        <select id="betType">
+          <option value="red">Red</option><option value="black">Black</option>
+          <option value="even">Even</option><option value="odd">Odd</option>
+          <option value="low">Low (1-18)</option><option value="high">High (19-36)</option>
+          <option value="dozen1">1st Dozen</option><option value="dozen2">2nd Dozen</option><option value="dozen3">3rd Dozen</option>
+          <option value="straight">Straight (pick number)</option>
+        </select>
+      </div>
+      <div class="form-group" id="straightNumberGroup" style="display:none">
+        <label>Pick Number</label>
+        <select id="straightNumber">${[...Array(37).keys()].map(n => `<option value="${n}">${n}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Strategy</label>
+        <select id="betStrategy">
+          <option value="flat">Flat Bet (fixed)</option>
+          <option value="proportional">Proportional (% of bankroll)</option>
+          <option value="kelly">Kelly Criterion</option>
+          <option value="martingale">Martingale</option>
+          <option value="fibonacci">Fibonacci</option>
+        </select>
+      </div>
+      <div class="form-group"><label id="betAmountLabel">Bet Unit (€)</label><input type="number" id="betAmount" value="5" min="0.5" step="0.5"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>MC Trials</label>
+        <select id="mcTrials">
+          <option value="1000">1,000 (fast)</option>
+          <option value="10000">10,000 (std)</option>
+          <option value="50000">50,000 (balanced)</option>
+          <option value="100000" selected>100,000 (best)</option>
+          <option value="500000">500,000 (accurate)</option>
+          <option value="1000000">1,000,000 (precise)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Scan All Bets</label>
+        <select id="scanAll">
+          <option value="true">Yes — find optimal</option>
+          <option value="false" selected>No — test selected only</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-12" onclick="runSimulation()" id="runBtn">▶ Run Monte Carlo Simulation</button>
+  </div>
+
+  <!-- ===== PORTFOLIO BUILDER ===== -->
+  <div class="card mb-12">
+    <div class="card-title">🎯 Bet Portfolio Builder</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">
+      Build custom multi-bet portfolios. Add multiple bets to test hedge strategies and asymmetric payoff profiles.
+    </div>
+    <div id="portfolioBets"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-outline" onclick="addPortfolioBet()" style="flex:1;font-size:12px;padding:6px">+ Add Bet</button>
+      <button class="btn btn-outline" onclick="clearPortfolio()" style="flex:0.5;font-size:12px;padding:6px">Clear All</button>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="runPortfolioSimulation()" id="pfRunBtn" style="flex:1;font-size:13px;padding:8px">▶ Run Portfolio MC</button>
+      <button class="btn btn-outline" onclick="autoOptimizePortfolio()" id="optBtn" style="flex:0.6;font-size:12px;padding:6px">✨ Auto-Optimize</button>
+    </div>
+    <div id="portfolioCost" class="help-text mt-12" style="font-size:12px;color:var(--gold)">Total cost per spin: €0.00 · No bets added</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Session Log</div>
+    <div class="log-container" id="logContainer">
+      <div class="text-dim" style="font-size:12px;padding:8px;">No simulations yet. Input data and run.</div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT: Results -->
+<div>
+
+  <!-- ===== DASHBOARD REPLICA ===== (MOVED TO TOP) -->
+  <div class="card mb-12" id="replicaCard" style="border-color:var(--gold)">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+      <span>🎰 Dashboard Replica</span>
+      <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--text-dim)" id="repTotalLabel">100 spins</span>
+        <span style="font-size:10px;color:var(--gold)" id="repGameLabel">GAME 980</span>
+        <button class="preset-btn" onclick="repTakeSnapshot()" style="font-size:10px;padding:2px 8px" title="Save current state">💾 Save</button>
+        <button class="preset-btn" onclick="repShowSnapshots()" style="font-size:10px;padding:2px 8px" title="View saved backups">📂 History</button>
+      </span>
+    </div>
+
+    <!-- Session Row + Upload -->
+    <div style="background:var(--surface2);border-radius:8px;padding:6px 10px;margin-bottom:8px;border:1px solid var(--border)">
+      <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+        <span style="font-size:10px;color:var(--text-dim);font-weight:500">📂</span>
+        <button class="preset-btn" onclick="repLoadSession('image1',this)">Img1 R51</button>
+        <button class="preset-btn" onclick="repLoadSession('image2',this)">Img2 B56</button>
+        <button class="preset-btn active" onclick="repLoadSession('image3',this)">Img3 B52</button>
+        <button class="preset-btn" onclick="repLoadSession('combined',this)">Combined</button>
+        <span style="flex:1"></span>
+        <button class="preset-btn" onclick="repShowUpload()" style="font-size:10px;padding:2px 8px;border-color:var(--accent)">📸 Upload</button>
+      </div>
+      <!-- Image Upload Bar (hidden by default) -->
+      <div id="repUploadBar" style="display:none;margin-top:4px;padding:6px;background:var(--panel);border-radius:6px;border:1px dashed var(--accent)">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="repUploadInput" placeholder="Paste image URL or file path..." 
+            style="flex:1;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px">
+          <button class="btn btn-outline" onclick="repProcessUpload()" style="font-size:11px;padding:4px 12px">Analyze</button>
+          <button class="btn btn-outline" onclick="document.getElementById('repUploadBar').style.display='none'" style="font-size:11px;padding:4px 8px">✕</button>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Paste an image URL or drag an image file — I'll OCR-extract all visible stats</div>
+      </div>
+      <!-- Snapshot Viewer (hidden by default) -->
+      <div id="repSnapshotViewer" style="display:none;margin-top:4px;padding:6px;background:var(--panel);border-radius:6px;border:1px solid var(--gold);max-height:200px;overflow-y:auto">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">📂 Saved Snapshots <span style="float:right;cursor:pointer;color:var(--accent);font-size:10px" onclick="document.getElementById('repSnapshotViewer').style.display='none'">✕ close</span></div>
+        <div id="repSnapshotList"></div>
+      </div>
+    </div>
+
+    <!-- Results Strip (READ-ONLY — safe click shows popup) -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="font-size:9px;color:var(--text-dim);white-space:nowrap">LAST 100:</span>
+      <div class="rep-results" id="repResults" style="flex:1"></div>
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);margin:0 0 8px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <span>🖱️ Click ball → <strong>options menu</strong> (safe — no auto-delete)</span>
+      <span style="cursor:pointer;color:var(--accent)" onclick="repAddBall()">+ add ball</span>
+      <span style="cursor:pointer;color:var(--green)" onclick="repRegenerate()">⟳ regenerate</span>
+      <span id="repUndoBtn" style="cursor:pointer;color:var(--gold);display:none" onclick="repUndoLast()">↩ undo remove</span>
+    </div>
+
+    <!-- Replica Board -->
+    <div class="replica-board">
+      <div class="replica-stats">
+        <div class="rs-row">
+          <div class="rs-label">RED / BLACK</div>
+          <div class="rs-pair">
+            <div class="rs-box red-bg"><span class="rs-pct" id="repRed">43%</span><span class="rs-name">RED</span></div>
+            <div class="rs-box black-bg"><span class="rs-pct" id="repBlack">52%</span><span class="rs-name">BLACK</span></div>
+          </div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-label">ZERO <span id="repGreen" style="color:var(--green);font-weight:700">5%</span></div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-label">EVEN / ODD</div>
+          <div class="rs-pair">
+            <div class="rs-box even-bg"><span class="rs-pct" id="repEven">47%</span><span class="rs-name">EVEN</span></div>
+            <div class="rs-box odd-bg"><span class="rs-pct" id="repOdd">48%</span><span class="rs-name">ODD</span></div>
+          </div>
+        </div>
+        <div class="rs-row">
+          <div class="rs-label">LOW / HIGH</div>
+          <div class="rs-pair">
+            <div class="rs-box low-bg"><span class="rs-pct" id="repLow">52%</span><span class="rs-name">1-18</span></div>
+            <div class="rs-box high-bg"><span class="rs-pct" id="repHigh">43%</span><span class="rs-name">19-36</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="replica-board-right">
+        <div class="rep-zero" id="repZero"></div>
+        <div class="rep-grid" id="repGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BALL POPUP MODAL (safe, shows options) -->
+  <div id="ballMenuModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:24px;max-width:320px;width:90%;text-align:center">
+      <div style="font-size:24px;font-weight:700;margin-bottom:6px" id="ballMenuNum">#0</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px" id="ballMenuInfo">Hit count: 0 · Bayesian P: 0%</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-outline" onclick="ballMenuAction('edit')" style="width:100%;font-size:13px">✏️ Edit count for this number</button>
+        <button class="btn btn-outline" onclick="ballMenuAction('hot')" style="width:100%;font-size:13px">🔥 Mark as hot / highlight</button>
+        <button class="btn btn-outline" onclick="ballMenuAction('remove')" style="width:100%;font-size:13px;border-color:var(--red-dim)">🗑️ Remove from sequence</button>
+        <button class="btn btn-outline" onclick="ballMenuAction('view')" style="width:100%;font-size:13px">📊 View in Bayesian table</button>
+      </div>
+      <button class="btn btn-outline" onclick="closeBallMenu()" style="margin-top:10px;width:100%;font-size:12px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CONFIRM DIALOG -->
+  <div id="confirmDialog" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:210;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:300px;width:90%;text-align:center">
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px" id="confirmTitle">Confirm</div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px" id="confirmMsg">Are you sure?</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="confirmAction(true)" style="flex:1;font-size:13px;border-color:var(--red)">Yes</button>
+        <button class="btn btn-outline" onclick="confirmAction(false)" style="flex:1;font-size:13px">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOP STATS ===== -->
+  <div class="card mb-12" id="bayesCard">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>🧮 Bayesian Per-Number Analysis</span>
+      <span style="font-size:11px;color:var(--text-dim)" id="bayesTotalLabel">100 spins loaded</span>
+    </div>
+
+    <!-- Session Combiner -->
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--border)">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--text-dim);font-weight:500">📂 Sessions:</span>
+        <button class="preset-btn active" onclick="switchSession('session2',this)" id="sessBtn2">Image #2 <span style="font-size:10px;color:var(--gold)">(R39/B56)</span></button>
+        <button class="preset-btn" onclick="switchSession('session1',this)" id="sessBtn1">Image #1 <span style="font-size:10px;color:var(--gold)">(R51/B44)</span></button>
+        <button class="preset-btn" onclick="switchSession('combined',this)" id="sessBtnComb">🔗 Combined <span style="font-size:10px;color:var(--gold)">(200 spins)</span></button>
+        <span style="font-size:11px;color:var(--text-dim);margin-left:auto">
+          Click a number count below to edit
+        </span>
+      </div>
+    </div>
+
+    <div class="bayes-info" style="margin-bottom:10px">
+      <code>P(i | data, α) = (α + countᵢ) / (N·α + total_spins)</code>
+      α = <strong>1</strong> (uniform prior)  ·  Prior: <span id="bayesPriorVal">1/37 ≈ 2.70%</span>
+    </div>
+
+    <div class="bayes-controls">
+      <label for="bayesSort" style="font-size:12px">Sort:</label>
+      <select id="bayesSort" onchange="renderBayesianTable()" style="font-size:12px">
+        <option value="probability">Bayesian P ↓</option>
+        <option value="ev">Expected Value ↓</option>
+        <option value="zscore">|Z-score| ↓</option>
+        <option value="number">Number ↑</option>
+        <option value="count">Count ↓</option>
+      </select>
+      <label for="bayesAlpha" style="font-size:12px">Prior:</label>
+      <select id="bayesAlpha" onchange="renderBayesianTable()" style="font-size:12px">
+        <option value="0.5">α=0.5</option>
+        <option value="1" selected>α=1</option>
+        <option value="2">α=2</option>
+        <option value="5">α=5</option>
+        <option value="10">α=10</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="bayesOnlyPosEV" onchange="renderBayesianTable()"> +EV only
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;margin-left:auto">
+        <input type="checkbox" id="bayesHideZero" onchange="renderBayesianTable()" checked> Hide zeros
+      </label>
+    </div>
+
+    <div id="bayesianTop3"></div>
+    <div class="bayes-table-wrap" id="bayesTableWrap" style="max-height:600px">
+      <div class="text-dim" style="font-size:13px;padding:10px">Load data to see per-number analysis</div>
+    </div>
+  </div>
+
+  <!-- ===== OPTIMAL DECISION ===== -->
+  <div class="card mb-12">
+    <div class="card-title">🎯 Optimal Decision</div>
+    <div class="result-recommendation" id="recommendationBox">
+      <div class="result-rec-label">Run a simulation to see the optimal bet</div>
+      <div class="result-rec-value" id="recValue">—</div>
+      <div class="result-rec-sub" id="recSub">Configure parameters and hit Run</div>
+    </div>
+    <div class="grid-3" id="resultCards">
+      <div class="card stat-card">
+        <div class="stat-value" id="resWinProb" style="font-size:24px">—</div>
+        <div class="stat-label">Win Probability</div>
+      </div>
+      <div class="card stat-card stat-gold">
+        <div class="stat-value" id="resEV" style="font-size:24px">—</div>
+        <div class="stat-label">Expected Value</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-value" id="resMedian" style="font-size:24px">—</div>
+        <div class="stat-label">Median Return</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="tabs" id="chartTabs">
+      <button class="tab active" onclick="switchChart('distribution',this)">Distribution</button>
+      <button class="tab" onclick="switchChart('cumulative',this)">Cumulative</button>
+      <button class="tab" onclick="switchChart('risk',this)">Risk Profile</button>
+    </div>
+    <div class="chart-container"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">📐 Outcome Percentiles</div>
+    <div id="percentileBars"><div class="text-dim" style="font-size:13px">Run simulation to see distribution</div></div>
+  </div>
+
+  <!-- ===== PAYOFF PROFILE (PORTFOLIO) ===== -->
+  <div class="card mb-12" id="payoffCard" style="display:none">
+    <div class="card-title">📊 Payoff Profile — Per-Outcome Net Profit</div>
+    <div class="help-text" style="margin-bottom:10px;font-size:12px">
+      Shows net profit/loss for each of the 37 possible outcomes given your current bet portfolio.
+      Green = profitable outcome · Red = losing outcome · Bar height = profit magnitude
+    </div>
+    <div class="chart-container" style="height:220px"><canvas id="payoffChart"></canvas></div>
+    <div class="help-text mt-12" style="font-size:12px;display:flex;gap:16px;flex-wrap:wrap" id="payoffSummary"></div>
+  </div>
+
+  <!-- ===== PORTFOLIO RISK METRICS ===== -->
+  <div class="card mb-12" id="portfolioRiskCard" style="display:none">
+    <div class="card-title">🛡️ Portfolio Risk Metrics</div>
+    <div class="grid-3" id="portfolioRiskGrid">
+      <div class="card stat-card"><div class="stat-value" id="pfEV" style="font-size:18px">—</div><div class="stat-label">Expected Value</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfSharpe" style="font-size:18px">—</div><div class="stat-label">Sharpe Ratio</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfSortino" style="font-size:18px">—</div><div class="stat-label">Sortino Ratio</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfSkew" style="font-size:18px">—</div><div class="stat-label">Skewness</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfKurt" style="font-size:18px">—</div><div class="stat-label">Kurtosis</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfOmega" style="font-size:18px">—</div><div class="stat-label">Omega Ratio</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfWinProb" style="font-size:18px">—</div><div class="stat-label">Win Prob</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfMaxLoss" style="font-size:18px">—</div><div class="stat-label">Max Loss</div></div>
+      <div class="card stat-card"><div class="stat-value" id="pfMaxGain" style="font-size:18px">—</div><div class="stat-label">Max Gain</div></div>
+    </div>
+  </div>
+
+  <!-- ===== OPTIMIZATION RESULTS ===== -->
+  <div class="card mb-12" id="optimizationCard" style="display:none">
+    <div class="card-title">✨ Strategy Optimization Results</div>
+    <div id="optimizationResults"><div class="text-dim" style="font-size:13px">Click "Auto-Optimize" to compare hedge strategies</div></div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">📊 Per-Bet Comparison</div>
+    <div id="comparisonTable"><div class="text-dim" style="font-size:13px">Enable "Scan All Bet Types" and run to compare</div></div>
+  </div>
+
+  <div class="card mb-12">
+    <div class="card-title">🔬 Fairness & Bias Analysis</div>
+    <div id="biasAnalysis">
+      <div id="chiSquaredResult"></div>
+      <div id="numberBiasGrid"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📸 Image Analysis</div>
+    <div class="text-dim" style="font-size:13px;margin-bottom:12px;">
+      Send a roulette screenshot through chat — I will extract all visible stats and populate the dashboard automatically.
+    </div>
+    <button class="btn btn-outline" onclick="alert('Send the image and I will analyze it and populate all data.')" style="width:100%">📤 Ready for Image</button>
+  </div>
+
+  <!-- ===== PROBABILITY TRAJECTORY ENGINE ===== -->
+  <div class="card mb-12" id="trajectoryCard" style="border-color:var(--purple)">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>📈 Probability Trajectory Engine</span>
+      <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:11px;color:var(--text-dim)">Number:</label>
+        <select id="trajNumber" onchange="updateTrajectory()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:12px"></select>
+        <label style="font-size:11px;color:var(--text-dim)">Window:</label>
+        <select id="trajWindow" onchange="updateTrajectory()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:12px">
+          <option value="37">37 (1 cycle)</option>
+          <option value="74" selected>74 (2 cycles)</option>
+          <option value="111">111 (3 cycles)</option>
+        </select>
+      </span>
+    </div>
+
+    <!-- Signal Panel -->
+    <div id="trajSignal" style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:12px;border-left:4px solid var(--purple)"></div>
+
+    <!-- Charts Row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Rolling P(n) vs 2.70% Central Line</div>
+        <div style="height:200px"><canvas id="trajRollingChart"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Gap-to-Mean (p̂ − 0.0270)</div>
+        <div style="height:200px"><canvas id="trajGapChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Cycle Table -->
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Per-Cycle Frequency (37 spins = 1 casino cycle)</div>
+    <div id="trajCycleTable" style="margin-bottom:12px;max-height:160px;overflow-y:auto"></div>
+
+    <!-- Excursion Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px" id="trajExcursion"></div>
+
+    <!-- All-Numbers Gap Heatmap -->
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">
+      All-Numbers Gap Heatmap · <span style="color:var(--red)">hot</span> / <span style="color:var(--accent)">cold</span> / <span style="color:var(--text-dim)">neutral</span>
+      · each cell = current gap from 2.70%
+    </div>
+    <div id="trajHeatmap" style="max-height:280px;overflow-y:auto"></div>
+  </div>
+
+  <!-- ===== RNG INTEGRITY TESTS ===== -->
+  <div class="card mb-12" id="rngCard" style="border-color:var(--accent)">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>🧪 RNG Integrity Tests — Zuum Terminal</span>
+      <span style="font-size:10px;color:var(--text-dim)" id="rngSummaryLabel"></span>
+    </div>
+
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px" id="rngStats"></div>
+
+    <!-- Per-number stock price table -->
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">
+      Per-Number "Stock Price" — hits per cycle · expected = 1.0/cycle · 🟢=cooling 🟠=heating
+    </div>
+    <div id="rngStockTable" style="max-height:500px;overflow-y:auto;margin-bottom:12px"></div>
+
+    <!-- Aggregate tests -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Hits Distribution vs Poisson(λ=1)</div>
+        <div style="height:180px"><canvas id="rngDistChart"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Zero Trend — hits per cycle</div>
+        <div style="height:180px"><canvas id="rngZeroChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ===========================
+// CONSTANTS
+// ===========================
+const EUROPEAN_NUMBERS = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const AMERICAN_NUMBERS = [0,28,9,26,30,11,7,20,32,17,5,22,34,15,3,24,36,13,1,0,27,10,25,29,12,8,19,31,18,6,21,33,16,4,23,35,14,2];
+const RED_SET = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const BLACK_SET = new Set([2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35]);
+
+const BET_LABELS = { red:'Red', black:'Black', even:'Even', odd:'Odd', low:'1-18', high:'19-36', dozen1:'1st Dozen', dozen2:'2nd Dozen', dozen3:'3rd Dozen', straight:'Straight' };
+const BET_PAYOUTS = { straight:35, split:17, street:11, corner:8, line:5, dozen:2, column:2, red:1, black:1, even:1, odd:1, low:1, high:1 };
+const BET_TYPES = ['red','black','even','odd','low','high','dozen1','dozen2','dozen3','straight'];
+
+let mainChart = null;
+let lastResults = null;
+let lastBayesData = null;
+
+function isRed(n) { return RED_SET.has(n); }
+function isBlack(n) { return BLACK_SET.has(n); }
+
+function getWheelNumbers(wt) { return wt === 'european' ? EUROPEAN_NUMBERS : AMERICAN_NUMBERS; }
+function getNumSlots(wt) { return wt === 'european' ? 37 : 38; }
+function getZeroCount(wt) { return wt === 'european' ? 1 : 2; }
+
+function numColor(n, wt) {
+  if (n === 0 || (wt === 'american' && n === 0)) return 'green';
+  return isRed(n) ? 'red' : 'black';
+}
+
+// ===========================
+// BAYESIAN CORE
+// ===========================
+function bayesianProbs(counts, total, wheelType, alpha) {
+  alpha = alpha || 1;
+  const slots = getNumSlots(wheelType);
+  const probs = {};
+  for (let i = 0; i < slots; i++) {
+    const key = String(i);
+    const c = counts[key] || 0;
+    probs[key] = (alpha + c) / (slots * alpha + total);
+  }
+  return probs;
+}
+
+function betaCI(count, total, slots, alpha, conf) {
+  alpha = alpha || 1;
+  conf = conf || 0.95;
+  const a = alpha + count;
+  const b = (slots - 1) * alpha + total - count;
+  const mean = a / (a + b);
+  if (a + b <= 0) return { lower: 0, upper: 0, mean: 0 };
+  const variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
+  const std = Math.sqrt(variance);
+  const z = conf === 0.99 ? 2.576 : 1.96;
+  return {
+    lower: Math.max(0, mean - z * std),
+    upper: Math.min(1, mean + z * std),
+    mean
+  };
+}
+
+function zScore(count, total, slots) {
+  const expected = total / slots;
+  if (expected <= 0) return 0;
+  const variance = total * (1/slots) * (1 - 1/slots);
+  const std = Math.sqrt(variance);
+  return std > 0 ? (count - expected) / std : 0;
+}
+
+// ===========================
+// RENDER BAYESIAN TABLE
+// ===========================
+function renderBayesianTable() {
+  const wheelType = document.getElementById('wheelType').value;
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  if (total === 0) return;
+
+  const alpha = parseFloat(document.getElementById('bayesAlpha').value);
+  const sortBy = document.getElementById('bayesSort').value;
+  const onlyPos = document.getElementById('bayesOnlyPosEV').checked;
+  const slots = getNumSlots(wheelType);
+  const theoretical = 1 / slots;
+  const nums = getWheelNumbers(wheelType);
+
+  document.getElementById('bayesPriorVal').textContent = `1/${slots} ≈ ${(theoretical*100).toFixed(2)}%`;
+
+  // Compute bayesian data for each number
+  const bayesData = nums.map(num => {
+    const key = String(num);
+    const count = counts[key] || 0;
+    const bayesP = (alpha + count) / (slots * alpha + total);
+    const ci = betaCI(count, total, slots, alpha);
+    const z = zScore(count, total, slots);
+    const colour = numColor(num, wheelType);
+
+    // Expected value for a straight bet of €1
+    const payout = 35;
+    const ev = bayesP * payout - (1 - bayesP);
+
+    return { num, count, bayesP, ci, z, colour, ev, theoretical };
+  });
+
+  // Filter
+  const filtered = onlyPos ? bayesData.filter(d => d.num !== 0 && d.num !== 0 && d.ev > 0) : bayesData;
+
+  // Sort
+  const sortFns = {
+    probability: (a,b) => b.bayesP - a.bayesP,
+    ev: (a,b) => b.ev - a.ev,
+    zscore: (a,b) => Math.abs(b.z) - Math.abs(a.z),
+    number: (a,b) => a.num - b.num,
+    count: (a,b) => b.count - a.count
+  };
+  filtered.sort(sortFns[sortBy] || sortFns.probability);
+
+  const top3 = filtered.slice(0, 3);
+  const bestColour = { red:0, black:0, green:0 };
+  bayesData.forEach(d => {
+    if (d.colour === 'red') bestColour.red += d.bayesP;
+    else if (d.colour === 'black') bestColour.black += d.bayesP;
+    else bestColour.green += d.bayesP;
+  });
+
+  // Top 3 highlight
+  let top3Html = '<div style="margin-bottom:12px">';
+  top3.forEach((d, i) => {
+    const badge = ['🥇','🥈','🥉'][i];
+    const colourDot = d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫';
+    top3Html += `<span style="display:inline-block;background:var(--surface2);padding:6px 14px;border-radius:8px;margin-right:8px;font-size:13px;border:1px solid ${i===0?'var(--gold)':'var(--border)'}">
+      ${badge} <strong>#${d.num}</strong> ${colourDot}  P=${(d.bayesP*100).toFixed(2)}%  EV=€${d.ev.toFixed(4)}
+    </span>`;
+  });
+  top3Html += `</div>
+  <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px">
+    Best colour: <strong style="color:var(--red)">Red ${(bestColour.red*100).toFixed(2)}%</strong> ·
+    <strong style="color:#94a3b8">Black ${(bestColour.black*100).toFixed(2)}%</strong> ·
+    <strong style="color:var(--green-bright)">Green ${(bestColour.green*100).toFixed(2)}%</strong>
+  </div>`;
+  document.getElementById('bayesianTop3').innerHTML = top3Html;
+
+  // Build the table
+  let html = `<table>
+    <tr>
+      <th>#</th><th>Colour</th><th>Count</th><th>Theoretical</th><th>Bayesian P</th>
+      <th>95% CI</th><th>Z-score</th><th>EV (€1)</th>
+    </tr>`;
+  filtered.forEach(d => {
+    const cClass = d.colour === 'red' ? 'num-red' : d.colour === 'green' ? 'num-green' : 'num-black';
+    const evClass = d.ev > 0 ? 'bayes-ev-pos' : 'bayes-ev-neg';
+    const ciWidth = Math.min(100, Math.max(2, (d.ci.upper - d.ci.lower) * 10000));
+    const pctWidth = (d.bayesP * 10000);
+    const barColor = d.colour === 'red' ? '#dc2626' : d.colour === 'green' ? '#10b981' : '#64748b';
+    html += `<tr>
+      <td class="num-colour ${cClass}">${d.num}</td>
+      <td>${d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫'}</td>
+      <td>${d.count}</td>
+      <td>${(d.theoretical*100).toFixed(2)}%</td>
+      <td><div style="display:flex;align-items:center;gap:4px">
+        <div class="bayes-bar" style="width:${Math.min(80, pctWidth)}px;background:${barColor}"></div>
+        <strong>${(d.bayesP*100).toFixed(2)}%</strong>
+      </div></td>
+      <td style="font-size:11px">${(d.ci.lower*100).toFixed(2)}% – ${(d.ci.upper*100).toFixed(2)}%</td>
+      <td style="color:${Math.abs(d.z) > 2 ? 'var(--red)' : 'var(--text-dim)'}">${d.z.toFixed(2)}</td>
+      <td class="${evClass}">€${d.ev.toFixed(4)}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  const wrap = document.getElementById('bayesTableWrap');
+  wrap.innerHTML = html;
+
+  // Show positive-EV summary
+  const posEV = bayesData.filter(d => d.num !== 0 && d.ev > 0);
+  if (posEV.length > 0) {
+    const prefix = document.createElement('div');
+    prefix.className = 'bayes-info';
+    prefix.style.marginTop = '12px';
+    prefix.innerHTML = `📈 <strong>Positive EV opportunities found:</strong> ${posEV.length} number(s) show positive expected value on a straight bet.
+      <br>Top pick: <strong>#${posEV[0].num}</strong> — Bayesian P = ${(posEV[0].bayesP*100).toFixed(2)}%,
+      EV = <strong style="color:var(--green-bright)">€${posEV[0].ev.toFixed(4)}</strong> per €1 bet,
+      ${(posEV[0].ci.lower*100).toFixed(2)}% – ${(posEV[0].ci.upper*100).toFixed(2)}% credible interval.`;
+    wrap.parentNode.insertBefore(prefix, wrap);
+  }
+
+  lastBayesData = { bayesData, top3, bestColour };
+}
+
+// ===========================
+// NUMBER GRID
+// ===========================
+function renderNumberGrid(counts, wheelType) {
+  const grid = document.getElementById('numberGrid');
+  const nums = getWheelNumbers(wheelType);
+  let html = '';
+  nums.forEach(num => {
+    const c = numColor(num, wheelType);
+    const key = String(num);
+    const val = counts && counts[key] !== undefined ? counts[key] : 0;
+    html += `<div class="data-cell cell-${c}">
+      <div class="num">${num}</div>
+      <input type="number" class="count-input" data-num="${num}" value="${val}" min="0" onchange="onGridChange()">
+    </div>`;
+  });
+  grid.innerHTML = html;
+  onGridChange();
+}
+
+function getCountsFromGrid() {
+  const inputs = document.querySelectorAll('.count-input');
+  const counts = {};
+  inputs.forEach(inp => { counts[inp.dataset.num] = parseInt(inp.value) || 0; });
+  return counts;
+}
+
+function onGridChange() {
+  updateTopStats();
+  renderBayesianTable();
+}
+
+function updateTopStats() {
+  const counts = getCountsFromGrid();
+  const wheelType = document.getElementById('wheelType').value;
+  let red = 0, black = 0, green = 0, total = 0;
+  Object.entries(counts).forEach(([num, c]) => {
+    total += c;
+    if (parseInt(num) === 0 || num === '00') green += c;
+    else if (isRed(parseInt(num))) red += c;
+    else black += c;
+  });
+
+  document.getElementById('displayRed').textContent = total > 0 ? Math.round(red / total * 1000) / 10 + '%' : '0%';
+  document.getElementById('displayBlack').textContent = total > 0 ? Math.round(black / total * 1000) / 10 + '%' : '0%';
+  document.getElementById('displayGreen').textContent = total > 0 ? Math.round(green / total * 1000) / 10 + '%' : '0%';
+  updateBiasAnalysis(counts, total, wheelType);
+}
+
+// ===========================
+// PRESETS
+// ===========================
+function loadPreset(name, btn) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const wheelType = document.getElementById('wheelType').value;
+  const slots = getNumSlots(wheelType);
+  const N = parseInt(document.getElementById('sampleSize').value) || 100;
+  const nums = getWheelNumbers(wheelType);
+  const counts = {};
+
+  if (name === 'session1') {
+    // ORIGINAL IMAGE: RED=51, BLACK=44, GREEN=5
+    const redPer = (51 / 18);
+    const blackPer = (44 / 18);
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(5 / getZeroCount(wheelType));
+      else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(redPer));
+      else counts[String(num)] = Math.max(1, Math.round(blackPer));
+    });
+  } else if (name === 'session2') {
+    // NEW IMAGE: RED=39, BLACK=56, GREEN=5
+    const redPer = (39 / 18);
+    const blackPer = (56 / 18);
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(5 / getZeroCount(wheelType));
+      else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(redPer));
+      else counts[String(num)] = Math.max(1, Math.round(blackPer));
+    });
+  } else if (name === 'station5') {
+    // STATION 5 / GAME 980 — 159 spins actual per-number counts
+    counts[0] = 6; counts[1] = 1; counts[2] = 6; counts[3] = 2;
+    counts[4] = 4; counts[5] = 3; counts[6] = 3; counts[7] = 7;
+    counts[8] = 1; counts[9] = 2; counts[10] = 6; counts[11] = 6;
+    counts[12] = 5; counts[13] = 8; counts[14] = 7; counts[15] = 7;
+    counts[16] = 5; counts[17] = 3; counts[18] = 4; counts[19] = 6;
+    counts[20] = 4; counts[21] = 4; counts[22] = 7; counts[23] = 7;
+    counts[24] = 4; counts[25] = 5; counts[26] = 4; counts[27] = 3;
+    counts[28] = 5; counts[29] = 4; counts[30] = 5; counts[31] = 3;
+    counts[32] = 3; counts[33] = 2; counts[35] = 4; counts[36] = 3;
+    document.getElementById('sampleSize').value = 159;
+  } else if (name === 'fair') {
+    nums.forEach(num => { counts[String(num)] = Math.round(N / slots); });
+  } else if (name === 'redBias') {
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = 3;
+      else if (isRed(num)) counts[String(num)] = Math.round(2.8 * N / 18);
+      else counts[String(num)] = Math.round(1.8 * N / 18);
+    });
+  } else if (name === 'zeroBias') {
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(0.08 * N);
+      else counts[String(num)] = Math.round(0.92 * N / (slots - 1));
+    });
+  } else if (name === 'random') {
+    let remaining = N;
+    nums.forEach((num, i) => {
+      if (i === nums.length - 1) counts[String(num)] = remaining;
+      else {
+        const c = Math.max(0, Math.round(remaining * Math.random() * 2 / (nums.length - i)));
+        counts[String(num)] = c;
+        remaining -= c;
+      }
+    });
+  }
+  renderNumberGrid(counts, wheelType);
+}
+
+// ===========================
+// AGGREGATE
+// ===========================
+function applyAggregate() {
+  const wheelType = document.getElementById('wheelType').value;
+  const nums = getWheelNumbers(wheelType);
+  const redC = parseInt(document.getElementById('aggRed').value) || 0;
+  const blackC = parseInt(document.getElementById('aggBlack').value) || 0;
+  const greenC = parseInt(document.getElementById('aggGreen').value) || 0;
+  const total = redC + blackC + greenC;
+  if (total === 0) { alert('Enter counts first'); return; }
+
+  const counts = {};
+  nums.forEach(num => {
+    if (num === 0) counts[String(num)] = Math.round(greenC / getZeroCount(wheelType));
+    else if (isRed(num)) counts[String(num)] = Math.round(redC / 18);
+    else counts[String(num)] = Math.round(blackC / 18);
+  });
+  renderNumberGrid(counts, wheelType);
+  document.getElementById('sampleSize').value = total;
+}
+
+// ===========================
+// MONTE CARLO
+// ===========================
+function generateProbs(counts, wheelType) {
+  const slots = getNumSlots(wheelType);
+  const total = Object.values(counts).reduce((a,b) => a+b, 0) || 100;
+  const theoretical = 1 / slots;
+  const probs = {};
+  const nums = getWheelNumbers(wheelType);
+  nums.forEach(num => {
+    const key = String(num);
+    const observed = counts[key] || 0;
+    const alpha = 2;
+    probs[key] = (observed + alpha * theoretical) / (total + alpha);
+  });
+  return probs;
+}
+
+function doesBetWin(result, betType, betNumber) {
+  switch(betType) {
+    case 'red': return isRed(result);
+    case 'black': return isBlack(result);
+    case 'even': return result !== 0 && result % 2 === 0;
+    case 'odd': return result !== 0 && result % 2 === 1;
+    case 'low': return result >= 1 && result <= 18;
+    case 'high': return result >= 19 && result <= 36;
+    case 'dozen1': return result >= 1 && result <= 12;
+    case 'dozen2': return result >= 13 && result <= 24;
+    case 'dozen3': return result >= 25 && result <= 36;
+    case 'straight': return result === betNumber;
+    default: return false;
+  }
+}
+
+function sampleOutcome(probs) {
+  const r = Math.random();
+  let cumulative = 0;
+  for (const [num, prob] of Object.entries(probs)) {
+    cumulative += prob;
+    if (r < cumulative) return parseInt(num);
+  }
+  return 0;
+}
+
+function getWinProb(probs, betType, betNumber) {
+  let wins = 0, total = 0;
+  for (const [num, prob] of Object.entries(probs)) {
+    total += prob;
+    if (doesBetWin(parseInt(num), betType, betNumber)) wins += prob;
+  }
+  return total > 0 ? wins / total : 0;
+}
+
+function calculateEV(probs, betType, betNumber, betAmount) {
+  const payout = BET_PAYOUTS[betType] || 1;
+  let ev = 0;
+  for (const [num, prob] of Object.entries(probs)) {
+    if (doesBetWin(parseInt(num), betType, betNumber)) ev += prob * betAmount * payout;
+    else ev += prob * (-betAmount);
+  }
+  return ev;
+}
+
+function runMC(probs, trials, iterations, bankroll, betType, betNumber, betAmount, strategy) {
+  const results = [];
+  const progInt = Math.max(1, Math.floor(trials / 20));
+  for (let t = 0; t < trials; t++) {
+    let br = bankroll, peak = bankroll, maxDD = 0, fibIdx = 0, martCnt = 0, curBet = betAmount;
+    const fib = [1,1,2,3,5,8,13,21,34,55,89];
+
+    for (let i = 0; i < iterations; i++) {
+      let bet = curBet;
+      if (strategy === 'proportional') bet = Math.max(0.5, br * (betAmount / 100));
+      else if (strategy === 'kelly') {
+        const p = getWinProb(probs, betType, betNumber);
+        const b = BET_PAYOUTS[betType] || 1;
+        const kf = (p * (b + 1) - 1) / b;
+        bet = kf > 0 ? Math.max(0.5, br * kf * 0.25) : 0.5;
+      } else if (strategy === 'martingale') {
+        bet = curBet * Math.pow(2, martCnt);
+        if (bet > br * 0.1) { martCnt = 0; bet = curBet; }
+      } else if (strategy === 'fibonacci') {
+        bet = curBet * fib[Math.min(fibIdx, fib.length - 1)];
+        if (bet > br * 0.1) { fibIdx = 0; bet = curBet; }
+      }
+      bet = Math.min(bet, br);
+      if (bet <= 0) break;
+
+      const result = sampleOutcome(probs);
+      if (doesBetWin(result, betType, betNumber)) {
+        br += bet * (BET_PAYOUTS[betType] || 1);
+        if (strategy === 'martingale') martCnt = 0;
+        if (strategy === 'fibonacci') fibIdx = Math.max(0, fibIdx - 2);
+      } else {
+        br -= bet;
+        if (strategy === 'martingale') martCnt++;
+        if (strategy === 'fibonacci') fibIdx++;
+      }
+      if (martCnt > 6) martCnt = 0;
+      if (fibIdx > 10) fibIdx = 0;
+      peak = Math.max(peak, br);
+      maxDD = Math.max(maxDD, peak - br);
+    }
+    results.push({ final: br, dd: maxDD });
+    if (t % progInt === 0 && t > 0) {
+      document.getElementById('loadingStatus').textContent = `Trial ${t.toLocaleString()} / ${trials.toLocaleString()} (${Math.round(t/trials*100)}%)`;
+    }
+  }
+  return results;
+}
+
+function analyzeResults(results, initial) {
+  const finals = results.map(r => r.final);
+  const sorted = [...finals].sort((a,b) => a-b);
+  const trials = results.length;
+  const wins = finals.filter(f => f > initial).length;
+  const avg = finals.reduce((a,b) => a+b, 0) / trials;
+  const median = sorted[Math.floor(trials/2)];
+  const p5 = sorted[Math.floor(trials*0.05)], p25 = sorted[Math.floor(trials*0.25)];
+  const p75 = sorted[Math.floor(trials*0.75)], p95 = sorted[Math.floor(trials*0.95)];
+  const variance = finals.reduce((s,f) => s + Math.pow(f-avg,2), 0) / trials;
+  const stdDev = Math.sqrt(variance);
+  const avgDD = results.reduce((a,r) => a + r.dd, 0) / trials;
+  return { winProb: wins/trials, avgReturn: avg, medianReturn: median,
+    expectedProfit: avg - initial, stdDev, sharpe: stdDev > 0 ? (avg-initial)/stdDev : 0,
+    p5, p25, p75, p95, avgDrawdown: avgDD, maxDrawdown: Math.max(...results.map(r => r.dd)),
+    finals, sorted };
+}
+
+function buildHistogram(finals, bankroll, bins) {
+  const min = Math.min(...finals), max = Math.max(...finals);
+  const bw = (max - min) / bins || 1;
+  return Array.from({length: bins}, (_, i) => {
+    const lo = min + i * bw;
+    return { x: (lo + lo + bw) / 2, y: finals.filter(f => f >= lo && f < lo + bw).length };
+  });
+}
+
+// ===========================
+// RUN
+// ===========================
+function runSimulation() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true; btn.textContent = '⏳ Running...';
+  document.getElementById('loadingOverlay').classList.add('show');
+  setTimeout(() => {
+    try { _run(); } catch(e) { console.error(e); alert('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.textContent = '▶ Run Monte Carlo Simulation'; document.getElementById('loadingOverlay').classList.remove('show'); }
+  }, 50);
+}
+
+function _run() {
+  const wheelType = document.getElementById('wheelType').value;
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0) || 100;
+  const probs = generateProbs(counts, wheelType);
+
+  const scanAll = document.getElementById('scanAll').value === 'true';
+  const bankroll = parseFloat(document.getElementById('bankroll').value) || 100;
+  const iterations = parseInt(document.getElementById('iterations').value) || 50;
+  const betType = document.getElementById('betType').value;
+  const straightNum = parseInt(document.getElementById('straightNumber').value) || 0;
+  const betAmount = parseFloat(document.getElementById('betAmount').value) || 5;
+  const strategy = document.getElementById('betStrategy').value;
+  const trials = parseInt(document.getElementById('mcTrials').value) || 100000;
+
+  document.getElementById('loadingStatus').textContent = 'Computing...';
+
+  let bestResult = null, allResults = {};
+
+  if (scanAll) {
+    const types = ['red','black','even','odd','low','high','dozen1','dozen2','dozen3'];
+    let bestWP = -1;
+    for (const bt of types) {
+      const wp = getWinProb(probs, bt, null);
+      const ev = calculateEV(probs, bt, null, 1);
+      const res = runMC(probs, Math.min(trials, 50000), iterations, bankroll, bt, null, betAmount, strategy);
+      const a = analyzeResults(res, bankroll);
+      allResults[bt] = { winProb: wp, ev, analysis: a };
+      if (a.winProb > bestWP) { bestWP = a.winProb; bestResult = { betType: bt, betNumber: null, winProb: wp, ev, analysis: a }; }
+    }
+    // Top numbers
+    const top = Object.entries(counts).filter(([k,v]) => parseInt(k)>0 && v>0).sort((a,b) => b[1]-a[1]).slice(0,5);
+    for (const [num, cnt] of top) {
+      const n = parseInt(num);
+      const wp = getWinProb(probs, 'straight', n);
+      const ev = calculateEV(probs, 'straight', n, 1);
+      const res = runMC(probs, Math.min(trials, 10000), iterations, bankroll, 'straight', n, betAmount, strategy);
+      const a = analyzeResults(res, bankroll);
+      allResults['straight-'+n] = { winProb: wp, ev, analysis: a };
+      if (a.winProb > bestWP) { bestWP = a.winProb; bestResult = { betType: 'straight', betNumber: n, winProb: wp, ev, analysis: a }; }
+    }
+  } else {
+    const bn = betType === 'straight' ? straightNum : null;
+    const wp = getWinProb(probs, betType, bn);
+    const ev = calculateEV(probs, betType, bn, 1);
+    const res = runMC(probs, trials, iterations, bankroll, betType, bn, betAmount, strategy);
+    const a = analyzeResults(res, bankroll);
+    bestResult = { betType, betNumber: bn, winProb: wp, ev, analysis: a };
+    allResults[betType] = { winProb: wp, ev, analysis: a };
+  }
+
+  lastResults = { probs, counts, bestResult, allResults, bankroll, iterations, trials, wheelType, N: total };
+  displayResults(lastResults);
+  logEntry(lastResults);
+}
+
+// ===========================
+// DISPLAY
+// ===========================
+function displayResults(d) {
+  const { bestResult: r, allResults, bankroll, iterations, trials } = d;
+
+  let recText = r.betNumber !== null ? `Bet ${BET_LABELS[r.betType]} #${r.betNumber}` : `Bet ${BET_LABELS[r.betType]}`;
+  document.getElementById('recValue').textContent = recText;
+  document.getElementById('recSub').textContent = `Win Prob: ${(r.analysis.winProb*100).toFixed(1)}% · EV: €${r.ev.toFixed(4)}/€ · ${trials.toLocaleString()} trials`;
+
+  const box = document.getElementById('recommendationBox');
+  box.style.borderColor = r.analysis.winProb > 0.5 ? '#10b981' : '#f59e0b';
+
+  document.getElementById('resWinProb').textContent = (r.analysis.winProb*100).toFixed(1) + '%';
+  document.getElementById('resEV').textContent = '€' + r.analysis.expectedProfit.toFixed(2);
+  document.getElementById('resMedian').textContent = '€' + r.analysis.medianReturn.toFixed(2);
+
+  // Percentiles
+  const a = r.analysis;
+  const maxP = Math.max(bankroll, a.p95), minP = Math.min(bankroll, a.p5);
+  const range = maxP - minP || 1;
+  document.getElementById('percentileBars').innerHTML = `
+    <div class="percentile-bar"><span class="label">P5</span><div class="track"><div class="fill" style="width:${((a.p5-minP)/range*100).toFixed(0)}%;background:#dc2626"></div></div><span class="val">€${a.p5.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P25</span><div class="track"><div class="fill" style="width:${((a.p25-minP)/range*100).toFixed(0)}%;background:#f59e0b"></div></div><span class="val">€${a.p25.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P50</span><div class="track"><div class="fill" style="width:${((a.medianReturn-minP)/range*100).toFixed(0)}%;background:#3b82f6"></div></div><span class="val">€${a.medianReturn.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P75</span><div class="track"><div class="fill" style="width:${((a.p75-minP)/range*100).toFixed(0)}%;background:#10b981"></div></div><span class="val">€${a.p75.toFixed(0)}</span></div>
+    <div class="percentile-bar"><span class="label">P95</span><div class="track"><div class="fill" style="width:${((a.p95-minP)/range*100).toFixed(0)}%;background:#10b981"></div></div><span class="val">€${a.p95.toFixed(0)}</span></div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:8px;">
+    Expected: €${a.avgReturn.toFixed(2)} · Std Dev: €${a.stdDev.toFixed(2)} · Sharpe: ${a.sharpe.toFixed(3)} · Avg DD: €${a.avgDrawdown.toFixed(2)}</div>`;
+
+  // Chart
+  const hist = buildHistogram(a.finals, bankroll, 40);
+  renderChart(hist, bankroll, 'distribution');
+  renderComparison(allResults, bankroll, r);
+
+  lastResults._finals = a.finals;
+  lastResults._bankroll = bankroll;
+}
+
+// ===========================
+// CHART
+// ===========================
+function renderChart(hist, bankroll, mode) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (mainChart) mainChart.destroy();
+
+  if (mode === 'distribution') {
+    const colors = hist.map(h => h.x >= bankroll ? 'rgba(16,185,129,0.6)' : 'rgba(220,38,38,0.5)');
+    const borders = hist.map(h => h.x >= bankroll ? '#10b981' : '#dc2626');
+    mainChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: hist.map(h => '€' + h.x.toFixed(0)),
+        datasets: [{ label: 'Outcomes', data: hist.map(h => h.y), backgroundColor: colors, borderColor: borders, borderWidth: 1, borderRadius: 2 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { backgroundColor: '#1a2332', borderColor: '#1e3044', borderWidth: 1, titleColor: '#e2e8f0', bodyColor: '#8899aa',
+            callbacks: { label: ctx => `${ctx.parsed.y} trials` } }
+        },
+        scales: { x: { display: false, grid: { display: false } }, y: { grid: { color: 'rgba(30,48,68,0.5)' }, ticks: { color: '#8899aa', font: { size: 11 } } } }
+      }
+    });
+  } else {
+    const sorted = [...lastResults._finals].sort((a,b) => a-b);
+    const cumData = sorted.map((f,i) => ({ x: f, y: (i+1)/sorted.length*100 }));
+    mainChart = new Chart(ctx, {
+      type: 'line',
+      data: { datasets: [{ label: 'Cumulative', data: cumData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, pointRadius: 0, borderWidth: 2, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a2332', borderColor: '#1e3044', borderWidth: 1, titleColor: '#e2e8f0', bodyColor: '#8899aa', callbacks: { label: ctx => `€${ctx.parsed.x.toFixed(2)} (${ctx.parsed.y.toFixed(1)}%)` } } },
+        scales: { x: { grid: { color: 'rgba(30,48,68,0.3)' }, ticks: { color: '#8899aa', font: { size: 11 }, callback: v => '€' + v.toFixed(0) } },
+          y: { grid: { color: 'rgba(30,48,68,0.3)' }, ticks: { color: '#8899aa', font: { size: 11 }, callback: v => v + '%' } } }
+      }
+    });
+  }
+}
+
+function switchChart(mode, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (!lastResults) return;
+  const a = lastResults.bestResult.analysis;
+  const hist = buildHistogram(a.finals, lastResults._bankroll || lastResults.bankroll, 40);
+  renderChart(hist, lastResults.bankroll, mode);
+}
+
+function renderComparison(allResults, bankroll, best) {
+  const div = document.getElementById('comparisonTable');
+  const entries = Object.entries(allResults);
+  if (entries.length <= 1) {
+    div.innerHTML = `<div class="text-dim" style="font-size:13px">Enable "Scan All Bet Types" to compare</div>`;
+    return;
+  }
+  const bestKey = best.betNumber !== null ? `${best.betType}-${best.betNumber}` : best.betType;
+  entries.sort((a,b) => b[1].analysis.winProb - a[1].analysis.winProb);
+  let html = `<table><tr><th>Bet</th><th>Win Prob</th><th>EV/€</th><th>Median</th><th>Std Dev</th></tr>`;
+  entries.forEach(([k, d]) => {
+    const label = k.startsWith('straight-') ? `#${k.split('-')[1]}` : BET_LABELS[k] || k;
+    const isBest = k === bestKey;
+    html += `<tr class="${isBest ? 'best-row' : ''}"><td>${label}${isBest ? ' ⭐' : ''}</td><td>${(d.analysis.winProb*100).toFixed(1)}%</td><td>€${d.ev.toFixed(4)}</td><td>€${d.analysis.medianReturn.toFixed(2)}</td><td>€${d.analysis.stdDev.toFixed(2)}</td></tr>`;
+  });
+  html += '</table>';
+  div.innerHTML = html;
+}
+
+// ===========================
+// FAIRNESS
+// ===========================
+function updateBiasAnalysis(counts, total, wheelType) {
+  if (total === 0) return;
+  const slots = getNumSlots(wheelType);
+  const nums = getWheelNumbers(wheelType);
+  const expected = total / slots;
+  let chiSq = 0;
+  nums.forEach(num => { const o = counts[String(num)] || 0; if (expected > 0) chiSq += Math.pow(o - expected, 2) / expected; });
+  const chiRatio = chiSq / (slots - 1);
+
+  const chiDiv = document.getElementById('chiSquaredResult');
+  let sClass = 'status-pass', msg = 'Wheel appears fair';
+  if (chiRatio > 1.5) { sClass = 'status-warn'; msg = 'Possible deviation'; }
+  if (chiRatio > 2.0) { sClass = 'status-fail'; msg = 'Significant bias'; }
+  chiDiv.innerHTML = `<div class="analysis-row"><div class="metric">χ² = <strong>${chiSq.toFixed(2)}</strong> (df=${slots-1})</div><div class="metric">Ratio: <strong>${chiRatio.toFixed(2)}</strong></div><div class="status ${sClass}">${msg}</div></div>`;
+
+  const zs = nums.map(num => {
+    const o = counts[String(num)] || 0;
+    const se = Math.sqrt(total * (1/slots) * (1 - 1/slots));
+    return { num, z: se > 0 ? (o - expected) / se : 0, colour: numColor(num, wheelType) };
+  });
+  zs.sort((a,b) => Math.abs(b.z) - Math.abs(a.z));
+
+  let bh = '<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">|Z| > 2 = significant deviation</div><div class="bias-grid">';
+  zs.forEach(s => {
+    let cls = 'bias-normal';
+    if (s.z > 1.5) cls = 'bias-over';
+    else if (s.z < -1.5) cls = 'bias-under';
+    const c = s.colour === 'red' ? '#dc2626' : s.colour === 'green' ? '#10b981' : '#94a3b8';
+    bh += `<div class="bias-item ${cls}"><div class="num" style="color:${c}">${s.num}</div><div class="zscore">z=${s.z.toFixed(1)}</div></div>`;
+  });
+  bh += '</div>';
+  document.getElementById('numberBiasGrid').innerHTML = bh;
+}
+
+// ===========================
+// LOG
+// ===========================
+function logEntry(d) {
+  const c = document.getElementById('logContainer');
+  const empty = c.querySelector('.text-dim');
+  if (empty) c.innerHTML = '';
+  const r = d.bestResult;
+  const label = r.betNumber !== null ? `${BET_LABELS[r.betType]} #${r.betNumber}` : BET_LABELS[r.betType];
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  el.innerHTML = `<span class="time">${new Date().toLocaleTimeString()}</span><span class="bet">${label}</span> · Win: <span class="prob">${(r.analysis.winProb*100).toFixed(1)}%</span> · EV: <span class="ev">€${r.analysis.expectedProfit.toFixed(2)}</span> · ${d.trials.toLocaleString()} trials`;
+  c.insertBefore(el, c.firstChild);
+}
+
+// ===========================
+// SETUP
+// ===========================
+document.getElementById('betType').addEventListener('change', function() {
+  document.getElementById('straightNumberGroup').style.display = this.value === 'straight' ? 'block' : 'none';
+});
+
+document.getElementById('betStrategy').addEventListener('change', function() {
+  document.getElementById('betAmountLabel').textContent = this.value === 'proportional' ? 'Bet %' : this.value === 'kelly' ? 'Fraction' : 'Bet Unit (€)';
+});
+
+document.getElementById('wheelType').addEventListener('change', function() {
+  loadPreset('fromImage', document.querySelector('.preset-btn'));
+});
+
+// Init — let the replica handle primary load
+// The replica init (at the end of the file) takes care of everything
+
+// ===========================
+// PORTFOLIO BUILDER UI
+// ===========================
+function addPortfolioBet(type, amount) {
+  const container = document.getElementById('portfolioBets');
+  const idx = container.children.length;
+  const row = document.createElement('div');
+  row.className = 'portfolio-bet';
+  row.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;align-items:center';
+  
+  const betTypes = [
+    ['red','Red'], ['black','Black'], ['even','Even'], ['odd','Odd'],
+    ['low','Low (1-18)'], ['high','High (19-36)'],
+    ['dozen','Dozen'], ['column','Column'],
+    ['straight','Straight'], ['split','Split'], ['street','Street'],
+    ['corner','Corner'], ['sixline','Six Line']
+  ];
+  
+  let typeOpts = '';
+  for (const [v, l] of betTypes) {
+    typeOpts += `<option value="${v}"${v === (type || (idx === 0 ? 'red' : 'straight')) ? ' selected' : ''}>${l}</option>`;
+  }
+  
+  row.innerHTML = `
+    <select class="pf-type" onchange="updatePfSubOptions(this);updatePortfolioCost()" style="flex:1.2;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px">
+      ${typeOpts}
+    </select>
+    <select class="pf-sub" onchange="updatePortfolioCost()" style="flex:0.8;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px">
+      ${makeSubOptions(type || (idx === 0 ? 'red' : 'straight'))}
+    </select>
+    <input type="number" class="pf-amount" value="${amount || (idx === 0 ? 5 : idx === 1 ? 2 : 5)}" min="0.5" step="0.5" onchange="updatePortfolioCost()" style="width:70px;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;text-align:center">
+    <span class="pf-payout" style="font-size:11px;color:var(--text-dim);width:30px;text-align:center">${idx === 0 ? 2 : 36}</span>
+    <button class="pf-remove" onclick="removePortfolioBet(this)" style="background:var(--red-dim);border:none;color:white;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:24px;text-align:center">×</button>
+  `;
+  container.appendChild(row);
+  updatePortfolioCost();
+}
+
+function makeSubOptions(type) {
+  if (['red','black','even','odd','low','high'].includes(type)) return '<option value="">—</option>';
+  if (type === 'dozen') return '<option value="1">1st (1-12)</option><option value="2">2nd (13-24)</option><option value="3">3rd (25-36)</option>';
+  if (type === 'column') return '<option value="1">Col 1</option><option value="2">Col 2</option><option value="3">Col 3</option>';
+  if (type === 'straight') {
+    let opts = '';
+    for (let i = 0; i <= 36; i++) opts += `<option value="${i}">${i}</option>`;
+    return opts;
+  }
+  if (type === 'split') {
+    let opts = '';
+    for (let i = 1; i <= 35; i++) opts += `<option value="${i}-${i+1}">${i}/${i+1}</option>`;
+    return opts;
+  }
+  if (type === 'street') {
+    let opts = '';
+    for (let i = 1; i <= 34; i += 3) opts += `<option value="${i}">${i}-${i+2}</option>`;
+    return opts;
+  }
+  if (type === 'corner') {
+    let opts = '';
+    for (let i = 1; i <= 32; i++) {
+      if (i % 3 === 0) continue;
+      opts += `<option value="${i}">${i}</option>`;
+    }
+    return opts;
+  }
+  if (type === 'sixline') {
+    let opts = '';
+    for (let i = 1; i <= 31; i += 3) opts += `<option value="${i}">${i}-${i+5}</option>`;
+    return opts;
+  }
+  return '<option value="">—</option>';
+}
+
+function updatePfSubOptions(sel) {
+  const row = sel.closest('.portfolio-bet');
+  const sub = row.querySelector('.pf-sub');
+  const payout = row.querySelector('.pf-payout');
+  sub.innerHTML = makeSubOptions(sel.value);
+  payout.textContent = ROU.getPayout(sel.value);
+  updatePortfolioCost();
+}
+
+function removePortfolioBet(btn) {
+  const row = btn.closest('.portfolio-bet');
+  row.remove();
+  updatePortfolioCost();
+}
+
+function clearPortfolio() {
+  document.getElementById('portfolioBets').innerHTML = '';
+  updatePortfolioCost();
+}
+
+function updatePortfolioCost() {
+  const pf = buildPortfolioFromUI();
+  const cost = pf ? pf.totalCost() : 0;
+  const count = document.getElementById('portfolioBets').children.length;
+  const el = document.getElementById('portfolioCost');
+  el.textContent = `Total cost per spin: €${cost.toFixed(2)} · ${count} bet(s)`;
+}
+
+function buildPortfolioFromUI() {
+  const rows = document.querySelectorAll('.portfolio-bet');
+  if (!rows.length) return null;
+  const pf = new Portfolio();
+  
+  for (const row of rows) {
+    const type = row.querySelector('.pf-type').value;
+    const subVal = row.querySelector('.pf-sub').value;
+    const amount = parseFloat(row.querySelector('.pf-amount').value) || 0;
+    if (amount <= 0) continue;
+    
+    let numbers;
+    if (type === 'split' && subVal) {
+      const [a, b] = subVal.split('-').map(Number);
+      numbers = [a, b];
+    } else if (['straight','street','corner','sixline'].includes(type) && subVal) {
+      numbers = ROU.getNumbers(type, parseInt(subVal));
+    } else if (['dozen','column'].includes(type) && subVal) {
+      numbers = ROU.getNumbers(type, parseInt(subVal));
+    } else if (['red','black','even','odd','low','high'].includes(type)) {
+      numbers = ROU.getNumbers(type);
+    } else continue;
+    
+    if (numbers && numbers.length > 0) {
+      pf.addBet(new Bet(type, numbers, amount, ROU.getPayout(type)));
+    }
+  }
+  
+  return pf;
+}
+
+// ===========================
+// RUN PORTFOLIO SIMULATION
+// ===========================
+function runPortfolioSimulation() {
+  const btn = document.getElementById('pfRunBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+  
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0) || 100;
+  const wheelType = document.getElementById('wheelType').value;
+  const slots = getNumSlots(wheelType);
+  const probs = {};
+  const nums = getWheelNumbers(wheelType);
+  nums.forEach(n => {
+    const key = String(n);
+    const c = counts[key] || 0;
+    probs[key] = (c + (1/slots)) / (total + 1);
+  });
+  
+  // Build probability array for the engine
+  const probArr = new Float64Array(37);
+  for (let j = 0; j < 37; j++) probArr[j] = probs[String(j)] || (1/37);
+  
+  const pf = buildPortfolioFromUI();
+  if (!pf || pf.bets.length === 0) {
+    alert('Add at least one bet to the portfolio first.');
+    btn.disabled = false;
+    btn.textContent = '▶ Run Portfolio MC';
+    return;
+  }
+  
+  const bankroll = parseFloat(document.getElementById('bankroll').value) || 100;
+  const iterations = parseInt(document.getElementById('iterations').value) || 50;
+  const trials = parseInt(document.getElementById('mcTrials').value) || 100000;
+  
+  // Show loading
+  document.getElementById('loadingOverlay').classList.add('show');
+  document.getElementById('loadingStatus').textContent = 'Running portfolio MC...';
+  
+  setTimeout(() => {
+    try {
+      // Compute single-spin metrics
+      const metrics = pf.allMetrics(probArr);
+      
+      // Run finite-horizon simulation
+      const sim = new PortfolioSimulator();
+      const simResults = sim.simulate(pf, bankroll, iterations, Math.min(trials, 50000), probArr, 
+        (t, total) => { document.getElementById('loadingStatus').textContent = `Trial ${t.toLocaleString()} / ${total.toLocaleString()}`; }
+      );
+      
+      // Display results
+      renderPayoffChart(metrics.payoffVector);
+      renderPortfolioMetrics(metrics, simResults, bankroll);
+      
+      document.getElementById('payoffCard').style.display = 'block';
+      document.getElementById('portfolioRiskCard').style.display = 'block';
+      
+      // Add to session log
+      const log = document.getElementById('logContainer');
+      const empty = log.querySelector('.text-dim');
+      if (empty) log.innerHTML = '';
+      const el = document.createElement('div');
+      el.className = 'log-entry';
+      const desc = pf.bets.map(b => `€${b.amount} ${b.type}`).join(' + ');
+      el.innerHTML = `<span class="time">${new Date().toLocaleTimeString()}</span> 📊 Portfolio: ${desc} · Win: <span class="prob">${(simResults.winProb*100).toFixed(1)}%</span> · Median: <span class="ev">€${simResults.medianReturn.toFixed(2)}</span>`;
+      log.insertBefore(el, log.firstChild);
+      
+    } catch(e) {
+      console.error(e);
+      alert('Portfolio simulation error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '▶ Run Portfolio MC';
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+  }, 50);
+}
+
+// ===========================
+// PAYOFF CHART
+// ===========================
+let payoffChart = null;
+
+function renderPayoffChart(payoffVector) {
+  const ctx = document.getElementById('payoffChart').getContext('2d');
+  if (payoffChart) payoffChart.destroy();
+  
+  const labels = Array.from({length: 37}, (_, i) => String(i));
+  const data = Array.from(payoffVector);
+  
+  const colors = data.map(v => v > 0 ? 'rgba(16,185,129,0.7)' : v < 0 ? 'rgba(220,38,38,0.6)' : 'rgba(100,116,139,0.4)');
+  const borders = data.map(v => v > 0 ? '#10b981' : v < 0 ? '#dc2626' : '#64748b');
+  
+  payoffChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Net Profit (€)',
+        data,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+        borderRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a2332',
+          borderColor: '#1e3044',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#8899aa',
+          callbacks: {
+            label: ctx => {
+              const isRed = ROU.isRed(parseInt(ctx.label));
+              const isBlack = ROU.isBlack(parseInt(ctx.label));
+              const colour = ctx.label === '0' ? '🟢' : isRed ? '🔴' : '⚫';
+              return `${colour} #${ctx.label}: €${ctx.parsed.y.toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: '#8899aa',
+            font: { size: 9 },
+            callback: (v, i) => {
+              const n = parseInt(labels[i]);
+              if (n === 0) return '0';
+              if (ROU.isRed(n)) return `\u2591${n}`;
+              return `${n}`;
+            }
+          }
+        },
+        y: {
+          grid: { color: 'rgba(30,48,68,0.3)' },
+          ticks: { color: '#8899aa', font: { size: 11 }, callback: v => '€' + v.toFixed(0) }
+        }
+      }
+    }
+  });
+  
+  // Summary stats
+  const wins = data.filter(v => v > 0).length;
+  const losses = data.filter(v => v < 0).length;
+  const pushes = data.filter(v => v === 0).length;
+  const maxWin = Math.max(...data);
+  const maxLoss = Math.min(...data);
+  const avgWin = data.filter(v => v > 0).reduce((s, v) => s + v, 0) / Math.max(1, wins);
+  const avgLoss = data.filter(v => v < 0).reduce((s, v) => s + v, 0) / Math.max(1, losses);
+  
+  document.getElementById('payoffSummary').innerHTML = `
+    <span>✅ Win outcomes: <strong>${wins}/37</strong></span>
+    <span>❌ Loss outcomes: <strong>${losses}/37</strong></span>
+    <span>💯 Avg win: <strong style="color:var(--green-bright)">€${avgWin.toFixed(2)}</strong></span>
+    <span>📉 Avg loss: <strong style="color:var(--red)">€${Math.abs(avgLoss).toFixed(2)}</strong></span>
+    <span>🏆 Best: <strong style="color:var(--green-bright)">€${maxWin.toFixed(2)}</strong></span>
+    <span>💀 Worst: <strong style="color:var(--red)">€${Math.abs(maxLoss).toFixed(2)}</strong></span>
+  `;
+}
+
+// ===========================
+// PORTFOLIO METRICS DISPLAY
+// ===========================
+function renderPortfolioMetrics(metrics, simResults, bankroll) {
+  document.getElementById('pfEV').textContent = '€' + metrics.ev.toFixed(4);
+  document.getElementById('pfSharpe').textContent = metrics.sharpe.toFixed(3);
+  document.getElementById('pfSortino').textContent = metrics.sortino === Infinity ? '∞' : metrics.sortino.toFixed(3);
+  document.getElementById('pfSkew').textContent = metrics.skewness.toFixed(3);
+  document.getElementById('pfKurt').textContent = metrics.kurtosis.toFixed(3);
+  document.getElementById('pfOmega').textContent = metrics.omegaRatio === Infinity ? '∞' : metrics.omegaRatio.toFixed(3);
+  document.getElementById('pfWinProb').textContent = (simResults.winProb * 100).toFixed(1) + '%';
+  document.getElementById('pfMaxLoss').textContent = '€' + Math.abs(metrics.maxLoss).toFixed(2);
+  document.getElementById('pfMaxGain').textContent = '€' + metrics.maxGain.toFixed(2);
+  
+  // Colour code skewness
+  const skewEl = document.getElementById('pfSkew');
+  if (metrics.skewness > 1) skewEl.style.color = 'var(--green-bright)';
+  else if (metrics.skewness < -1) skewEl.style.color = 'var(--red)';
+  else skewEl.style.color = '';
+  
+  // Check if this is an asymmetric hedge
+  const hedgeBad = document.getElementById('payoffSummary');
+  if (metrics.skewness > 1.5) {
+    hedgeBad.innerHTML += `<span style="color:var(--green-bright);font-weight:700">🛡️ ASYMMETRIC HEDGE DETECTED — Positive skew (${metrics.skewness.toFixed(2)})</span>`;
+  } else if (metrics.skewness < -1.5) {
+    hedgeBad.innerHTML += `<span style="color:var(--red);font-weight:700">⚠️ NEGATIVE SKEW — Most outcomes lose (${metrics.skewness.toFixed(2)})</span>`;
+  }
+}
+
+// ===========================
+// AUTO-OPTIMIZE
+// ===========================
+function autoOptimizePortfolio() {
+  const btn = document.getElementById('optBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Optimizing...';
+  
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0) || 100;
+  const wheelType = document.getElementById('wheelType').value;
+  const slots = getNumSlots(wheelType);
+  const probArr = new Float64Array(37);
+  const nums = getWheelNumbers(wheelType);
+  nums.forEach(n => {
+    const key = String(n);
+    const c = counts[key] || 0;
+    probArr[n] = (c + (1/slots)) / (total + 1);
+  });
+  
+  const bankroll = parseFloat(document.getElementById('bankroll').value) || 100;
+  const iterations = parseInt(document.getElementById('iterations').value) || 50;
+  
+  document.getElementById('loadingOverlay').classList.add('show');
+  document.getElementById('loadingStatus').textContent = 'Searching optimal strategies...';
+  
+  setTimeout(() => {
+    try {
+      const candidates = PortfolioOptimizer.suggestOptimalMix(probArr, bankroll, iterations);
+      
+      document.getElementById('optimizationCard').style.display = 'block';
+      const div = document.getElementById('optimizationResults');
+      
+      let html = `<table>
+        <tr><th>Rank</th><th>Strategy</th><th>Cost</th><th>Win Prob</th><th>EV</th><th>Sharpe</th><th>Skew</th><th>Median</th><th>CVaR</th></tr>`;
+      
+      candidates.forEach((c, i) => {
+        const isBest = i === 0;
+        const skewColor = c.metrics.skewness > 1 ? 'var(--green-bright)' : c.metrics.skewness < -1 ? 'var(--red)' : '';
+        html += `<tr class="${isBest ? 'best-row' : ''}">
+          <td>${isBest ? '🥇' : i < 3 ? ['🥈','🥉'][i-1] : `#${i+1}`}</td>
+          <td><strong>${c.label}</strong></td>
+          <td>€${c.cost.toFixed(2)}</td>
+          <td>${(c.simResults.winProb*100).toFixed(1)}%</td>
+          <td>€${c.metrics.ev.toFixed(4)}</td>
+          <td>${c.metrics.sharpe.toFixed(3)}</td>
+          <td style="color:${skewColor}">${c.metrics.skewness.toFixed(2)}</td>
+          <td>€${c.simResults.medianReturn.toFixed(2)}</td>
+          <td style="color:var(--red)">€${Math.abs(c.simResults.cvaR95).toFixed(2)}</td>
+        </tr>`;
+      });
+      
+      html += '</table>';
+      
+      // Show the best strategy details
+      const best = candidates[0];
+      html += `<div class="bayes-info mt-12">
+        <strong>🏆 Optimal Strategy: ${best.label}</strong><br>
+        Cost: €${best.cost.toFixed(2)}/spin · Win Prob: ${(best.simResults.winProb*100).toFixed(1)}% · 
+        Expected Profit: €${best.simResults.expectedProfit.toFixed(2)} over ${iterations} spins<br>
+        Sharpe: ${best.metrics.sharpe.toFixed(3)} · Sortino: ${(best.metrics.sortino === Infinity ? '∞' : best.metrics.sortino.toFixed(3))} · 
+        Skewness: ${best.metrics.skewness.toFixed(2)} · Omega: ${(best.metrics.omegaRatio === Infinity ? '∞' : best.metrics.omegaRatio.toFixed(3))}
+      </div>`;
+      
+      div.innerHTML = html;
+      
+    } catch(e) {
+      console.error(e);
+      alert('Optimization error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✨ Auto-Optimize';
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+  }, 50);
+}
+
+// ===========================
+// SESSION SWITCHER
+// ===========================
+function switchSession(name, btn) {
+  // Highlight button
+  document.querySelectorAll('#bayesCard .preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  if (name === 'session1') {
+    // RED=51, BLACK=44, GREEN=5
+    loadPreset('session1', null);
+  } else if (name === 'session2') {
+    // RED=39, BLACK=56, GREEN=5
+    loadPreset('station5', document.querySelector('.preset-btn'));
+  } else if (name === 'combined') {
+    // COMBINE: RED=90, BLACK=100, GREEN=10 (sum of both)
+    const wheelType = document.getElementById('wheelType').value;
+    const nums = getWheelNumbers(wheelType);
+    const counts = {};
+    const zc = getZeroCount(wheelType);
+    nums.forEach(num => {
+      if (num === 0) counts['0'] = Math.round(10 / zc);
+      else if (isRed(num)) counts[String(num)] = Math.max(1, Math.round(90 / 18));
+      else counts[String(num)] = Math.max(1, Math.round(100 / 18));
+    });
+    renderNumberGrid(counts, wheelType);
+    document.getElementById('sampleSize').value = 200;
+  }
+  
+  document.getElementById('bayesTotalLabel').textContent = 
+    name === 'combined' ? '200 spins (combined)' : '100 spins loaded';
+  
+  // Run Bayesian table update
+  renderBayesianTable();
+  updateTopStats();
+}
+
+// ===========================
+// REDUCED BAYESIAN TABLE (editable counts)
+// ===========================
+// Override renderBayesianTable to support editable counts
+const _origRenderBayesian = renderBayesianTable;
+renderBayesianTable = function() {
+  const wheelType = document.getElementById('wheelType').value;
+  const counts = getCountsFromGrid();
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  if (total === 0) return;
+
+  const alpha = parseFloat(document.getElementById('bayesAlpha').value);
+  const sortBy = document.getElementById('bayesSort').value;
+  const onlyPos = document.getElementById('bayesOnlyPosEV').checked;
+  const hideZero = document.getElementById('bayesHideZero').checked;
+  const slots = getNumSlots(wheelType);
+  const theoretical = 1 / slots;
+  const nums = getWheelNumbers(wheelType);
+
+  document.getElementById('bayesPriorVal').textContent = `1/${slots} ≈ ${(theoretical*100).toFixed(2)}%`;
+  
+  // Default sort to probability descending
+  if (!sortBy || sortBy === 'probability') {
+    document.getElementById('bayesSort').value = 'probability';
+  }
+
+  const bayesData = nums.map(num => {
+    const key = String(num);
+    const count = counts[key] || 0;
+    const bayesP = (alpha + count) / (slots * alpha + total);
+    const ci = betaCI(count, total, slots, alpha);
+    const z = zScore(count, total, slots);
+    const colour = numColor(num, wheelType);
+    const payout = 36;
+    const ev = bayesP * payout - (1 - bayesP);
+    return { num, count, bayesP, ci, z, colour, ev, theoretical };
+  });
+
+  // Filter
+  let filtered = bayesData;
+  if (onlyPos) filtered = filtered.filter(d => d.num !== 0 && d.ev > 0);
+  if (hideZero) filtered = filtered.filter(d => d.count > 0);
+
+  // Sort
+  const sortFns = {
+    probability: (a,b) => b.bayesP - a.bayesP,
+    ev: (a,b) => b.ev - a.ev,
+    zscore: (a,b) => Math.abs(b.z) - Math.abs(a.z),
+    number: (a,b) => a.num - b.num,
+    count: (a,b) => b.count - a.count
+  };
+  filtered.sort(sortFns[sortBy] || sortFns.probability);
+
+  // Top 3
+  const top3 = filtered.slice(0, 3);
+  let top3Html = '<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
+  top3.forEach((d, i) => {
+    const badge = ['🥇','🥈','🥉'][i];
+    const dot = d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫';
+    // Confidence bar
+    const ciWidth = Math.max(10, (d.ci.upper - d.ci.lower) * 500);
+    const ciMid = (d.ci.lower + d.ci.upper) / 2 * 100;
+    top3Html += `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid ${i===0?'var(--gold)':'var(--border)'}">
+      ${badge} <strong>#${d.num}</strong>${dot}
+      P=<strong style="color:var(--green-bright)">${(d.bayesP*100).toFixed(2)}%</strong>
+      <span style="font-size:10px;color:var(--text-dim)">[${(d.ci.lower*100).toFixed(1)}-${(d.ci.upper*100).toFixed(1)}%]</span>
+      EV=€${d.ev.toFixed(4)}
+      <div style="width:60px;height:4px;background:var(--surface);border-radius:2px;overflow:hidden">
+        <div style="width:${ciWidth}px;height:100%;background:${d.colour === 'red' ? '#dc2626' : d.colour === 'green' ? '#10b981' : '#64748b'};border-radius:2px"></div>
+      </div>
+    </span>`;
+  });
+  document.getElementById('bayesianTop3').innerHTML = top3Html;
+
+  // Build the table with EDITABLE counts
+  let html = `<table>
+    <tr>
+      <th>#</th><th>Colour</th>
+      <th style="cursor:pointer" onclick="sortBayes('count')">Count ⬍</th>
+      <th>Theo</th>
+      <th style="cursor:pointer" onclick="sortBayes('probability')">Bayesian P ⬍</th>
+      <th>95% CI</th>
+      <th style="cursor:pointer" onclick="sortBayes('zscore')">Z ⬍</th>
+      <th style="cursor:pointer" onclick="sortBayes('ev')">EV (€1) ⬍</th>
+    </tr>`;
+  filtered.forEach(d => {
+    const cClass = d.colour === 'red' ? 'num-red' : d.colour === 'green' ? 'num-green' : 'num-black';
+    const evClass = d.ev > 0 ? 'bayes-ev-pos' : 'bayes-ev-neg';
+    const ciWidth = Math.max(5, Math.min(80, (d.ci.upper - d.ci.lower) * 500));
+    const barColor = d.colour === 'red' ? '#dc2626' : d.colour === 'green' ? '#10b981' : '#64748b';
+    const isZSignificant = Math.abs(d.z) > 1.96;
+    
+    html += `<tr>
+      <td class="num-colour ${cClass}" style="font-size:14px;font-weight:700">${d.num}</td>
+      <td>${d.colour === 'red' ? '🔴' : d.colour === 'green' ? '🟢' : '⚫'}</td>
+      <td><input type="number" value="${d.count}" min="0" 
+        onchange="updateNumberCount(${d.num}, this.value)"
+        style="width:50px;padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;text-align:center;font-weight:600"></td>
+      <td style="font-size:12px;color:var(--text-dim)">${(d.theoretical*100).toFixed(2)}%</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div style="width:${Math.min(60, d.bayesP * 1500)}px;height:12px;background:${barColor};border-radius:3px;opacity:0.8"></div>
+          <strong style="font-size:14px">${(d.bayesP*100).toFixed(2)}%</strong>
+        </div>
+      </td>
+      <td style="font-size:11px">
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <span style="color:var(--text-dim)">${(d.ci.lower*100).toFixed(1)}% – ${(d.ci.upper*100).toFixed(1)}%</span>
+          <div style="width:80px;height:4px;background:var(--surface);border-radius:2px;overflow:hidden">
+            <div style="margin-left:${(d.ci.lower / (1/slots)) * 50}px;width:${ciWidth}px;height:100%;background:${barColor};border-radius:2px;opacity:0.5"></div>
+          </div>
+        </div>
+      </td>
+      <td style="color:${isZSignificant ? 'var(--red)' : 'var(--text-dim)'};font-weight:${isZSignificant ? '700' : '400'}">${d.z.toFixed(2)}${isZSignificant ? ' ⚠️' : ''}</td>
+      <td class="${evClass}" style="font-size:14px;font-weight:${d.ev > 0 ? '700' : '400'}">€${d.ev.toFixed(4)}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  // Summary
+  const posCount = bayesData.filter(d => d.num !== 0 && d.ev > 0).length;
+  html += `<div class="bayes-info" style="margin-top:10px;font-size:12px">
+    📈 <strong>${posCount}/${slots}</strong> numbers with positive EV ·
+    Total data: <strong>${total}</strong> spins ·
+    α = <strong>${alpha}</strong>
+  </div>`;
+
+  document.getElementById('bayesTableWrap').innerHTML = html;
+};
+
+// ===========================
+// INLINE COUNT EDIT
+// ===========================
+function updateNumberCount(num, value) {
+  const input = document.querySelector(`.count-input[data-num="${num}"]`);
+  if (input) {
+    input.value = Math.max(0, parseInt(value) || 0);
+    onGridChange();
+  }
+}
+
+function sortBayes(by) {
+  document.getElementById('bayesSort').value = by;
+  renderBayesianTable();
+}
+
+// ===========================
+// REPLICA DASHBOARD ENGINE
+// ===========================
+const REP_SESSIONS = {
+  image1: { red:51, black:44, green:5, even:47, odd:48, low:46, high:49, total:100, game:'—', station:'—' },
+  image2: { red:39, black:56, green:5, even:43, odd:52, low:53, high:42, total:100, game:'2016', station:'—' },
+  image3: { red:43, black:52, green:5, even:47, odd:48, low:52, high:43, total:100, game:'980', station:'5' },
+  combined:{ red:90, black:100, green:10, even:90, odd:100, low:99, high:91, total:200, game:'—', station:'ALL' }
+};
+let repCounts = {};
+let repResults = [];
+
+function repLoadSession(name, btn) {
+  document.querySelectorAll('#replicaCard .preset-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  
+  const s = REP_SESSIONS[name];
+  if (!s) return;
+  
+  // Fill counts from aggregates — also sync main grid
+  const counts = {};
+  for (let n = 0; n <= 36; n++) {
+    if (n === 0) counts[n] = Math.round(s.green);
+    else if (ROU.isRed(n)) counts[n] = Math.max(1, Math.round(s.red / 18));
+    else counts[n] = Math.max(1, Math.round(s.black / 18));
+  }
+  repCounts = counts;
+  
+  // Sync the main number grid
+  const wheelType = document.getElementById('wheelType').value;
+  const nums = getWheelNumbers(wheelType);
+  const gridCounts = {};
+  nums.forEach(num => { gridCounts[String(num)] = counts[num] || 0; });
+  renderNumberGrid(gridCounts, wheelType);
+  document.getElementById('sampleSize').value = s.total;
+  
+  repResults = repGenerateResults(counts, 20);
+  repRenderAll(s);
+}
+
+function repRenderAll(s) {
+  document.getElementById('repRed').textContent = s.red + '%';
+  document.getElementById('repBlack').textContent = s.black + '%';
+  document.getElementById('repGreen').textContent = s.green + '%';
+  document.getElementById('repEven').textContent = s.even + '%';
+  document.getElementById('repOdd').textContent = s.odd + '%';
+  document.getElementById('repLow').textContent = s.low + '%';
+  document.getElementById('repHigh').textContent = s.high + '%';
+  document.getElementById('repTotalLabel').textContent = s.total + ' spins';
+  document.getElementById('repGameLabel').textContent = s.game ? 'GAME ' + s.game : '—';
+  
+  repRenderBoard();
+  repRenderResults();
+}
+
+function repRenderBoard() {
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  
+  // Zero
+  const zc = repCounts[0] || 0;
+  const zBayes = (1 + zc) / (37 + total);
+  document.getElementById('repZero').innerHTML =
+    `<div class="rep-cell green-cell" onclick="repOpenEdit(0)">
+      <span class="rnum">0</span>
+      <div class="rpbar" style="width:${Math.min(60, zBayes*1500)}px;background:var(--green)"></div>
+      <span class="rcount">${zc}</span>
+    </div>`;
+  
+  // Grid
+  const layout = [
+    [3,6,9,12,15,18,21,24,27,30,33,36],
+    [2,5,8,11,14,17,20,23,26,29,32,35],
+    [1,4,7,10,13,16,19,22,25,28,31,34]
+  ];
+  let html = '';
+  for (const row of layout) {
+    for (const num of row) {
+      const c = repCounts[num] || 0;
+      const bp = (1 + c) / (37 + total);
+      const col = ROU.isRed(num) ? 'red' : 'black';
+      html += `<div class="rep-cell ${col}-cell" onclick="repOpenEdit(${num})">
+        <span class="rnum">${num}</span>
+        <div class="rpbar" style="width:${Math.min(60, bp*1500)}px;background:${col==='red'?'#dc2626':'#64748b'}"></div>
+        <span class="rcount">${c}</span>
+      </div>`;
+    }
+  }
+  document.getElementById('repGrid').innerHTML = html;
+}
+
+function repRenderResults() {
+  let html = '';
+  for (const num of repResults) {
+    const col = num === 0 ? 'green' : ROU.isRed(num) ? 'red' : 'black';
+    html += `<div class="rep-ball rball-${col}" onclick="repRemoveBall(this,${num})">${num}</div>`;
+  }
+  html += `<div class="rep-add-btn" onclick="repAddBall()">+</div>`;
+  document.getElementById('repResults').innerHTML = html;
+}
+
+function repGenerateResults(counts, count) {
+  const entries = Object.entries(counts).map(([k,v]) => ({ num:parseInt(k), weight:v }));
+  const totalW = entries.reduce((s,e) => s + e.weight, 0);
+  const nums = [];
+  for (let i = 0; i < count; i++) {
+    let r = Math.random() * totalW;
+    for (const e of entries) { r -= e.weight; if (r <= 0) { nums.push(e.num); break; } }
+  }
+  return nums;
+}
+
+function repRemoveBall(el, num) {
+  repResults = repResults.filter(n => n !== num);
+  repRenderResults();
+}
+
+function repAddBall() {
+  // Add a new ball with weighted random
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  let r = Math.random() * total;
+  let chosen = 0;
+  for (const [k, v] of Object.entries(repCounts)) {
+    r -= v;
+    if (r <= 0) { chosen = parseInt(k); break; }
+  }
+  repResults.push(chosen);
+  repRenderResults();
+  repUpdateAggregates();
+}
+
+function repRegenerate() {
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  repResults = repGenerateResults(repCounts, Math.max(10, Math.min(50, Math.round(total/5))));
+  repRenderResults();
+}
+
+function repOpenEdit(num) {
+  // Use the same edit overlay as the main Bayesian table — update the grid count
+  const input = document.querySelector(`.count-input[data-num="${num}"]`);
+  if (input) {
+    const newVal = prompt(`Enter count for #${num}:`, input.value);
+    if (newVal !== null && !isNaN(parseInt(newVal))) {
+      input.value = Math.max(0, parseInt(newVal));
+      onGridChange();
+      // Refresh replica from grid
+      const counts = getCountsFromGrid();
+      repCounts = {};
+      for (const [k, v] of Object.entries(counts)) repCounts[parseInt(k)] = v;
+      const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+      document.getElementById('repTotalLabel').textContent = total + ' spins';
+      repRenderBoard();
+      repRenderResults();
+    }
+  }
+}
+
+function repUpdateAggregates() {
+  // Recalculate aggregates from repCounts
+  let red = 0, black = 0, green = 0, total = 0;
+  for (const [k, v] of Object.entries(repCounts)) {
+    const n = parseInt(k);
+    total += v;
+    if (n === 0) green += v;
+    else if (ROU.isRed(n)) red += v;
+    else black += v;
+  }
+  if (total > 0) {
+    document.getElementById('repRed').textContent = Math.round(red/total*100) + '%';
+    document.getElementById('repBlack').textContent = Math.round(black/total*100) + '%';
+    document.getElementById('repGreen').textContent = Math.round(green/total*100) + '%';
+    document.getElementById('repTotalLabel').textContent = total + ' spins';
+  }
+  repRenderBoard();
+}
+
+// Init replica on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => repLoadSession('image3', document.querySelector('#replicaCard .preset-btn.active')), 100);
+  repRefreshSnapshotList();
+  // Auto-save check on page load
+  const saved = localStorage.getItem('roulette_current_state');
+  if (saved) {
+    console.log('📦 Found saved state from ' + JSON.parse(saved).timestamp);
+  }
+});
+
+// ===========================
+// SAFE BALL MENU
+// ===========================
+let _ballMenuNum = null;
+let _ballMenuEl = null;
+let _repTrash = [];
+let _confirmCallback = null;
+
+function showBallMenu(el, num) {
+  _ballMenuNum = num;
+  _ballMenuEl = el;
+  
+  document.getElementById('ballMenuNum').textContent = `#${num} ${num === 0 ? '🟢' : ROU.isRed(num) ? '🔴' : '⚫'}`;
+  
+  // Get current info
+  const count = repCounts[num] || 0;
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  const bayesP = (1 + count) / (37 + total);
+  document.getElementById('ballMenuInfo').textContent = `Hit count: ${count} · Bayesian P: ${(bayesP*100).toFixed(2)}%`;
+  
+  document.getElementById('ballMenuModal').style.display = 'flex';
+}
+
+function closeBallMenu() {
+  document.getElementById('ballMenuModal').style.display = 'none';
+  _ballMenuNum = null;
+  _ballMenuEl = null;
+}
+
+function ballMenuAction(action) {
+  const num = _ballMenuNum;
+  closeBallMenu();
+  
+  if (action === 'edit') {
+    repOpenEdit(num);
+  } else if (action === 'hot') {
+    // Highlight the number in all views
+    alert(`🔥 #${num} marked as hot! (highlighting will be added in next update)`);
+  } else if (action === 'remove') {
+    // Show confirmation dialog
+    showConfirm('Remove from sequence', `Remove one instance of #${num} from the results?`, () => {
+      // Find and remove ONE instance
+      const idx = repResults.indexOf(num);
+      if (idx !== -1) {
+        const removed = repResults.splice(idx, 1)[0];
+        _repTrash.push(removed);
+        repRenderResults();
+        document.getElementById('repUndoBtn').style.display = 'inline';
+      }
+    });
+  } else if (action === 'view') {
+    // Scroll to Bayesian table and sort by this number
+    document.getElementById('bayesSort').value = 'number';
+    renderBayesianTable();
+    document.getElementById('bayesCard').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  _confirmCallback = callback;
+  document.getElementById('confirmDialog').style.display = 'flex';
+}
+
+function confirmAction(confirmed) {
+  document.getElementById('confirmDialog').style.display = 'none';
+  if (confirmed && _confirmCallback) {
+    _confirmCallback();
+    _confirmCallback = null;
+  }
+}
+
+function repUndoLast() {
+  if (_repTrash.length === 0) return;
+  const restored = _repTrash.pop();
+  repResults.push(restored);
+  repRenderResults();
+  if (_repTrash.length === 0) document.getElementById('repUndoBtn').style.display = 'none';
+}
+
+// Override repRenderResults to use safe click handler
+const _origRepRenderResults = repRenderResults;
+repRenderResults = function() {
+  let html = '';
+  for (const num of repResults) {
+    const col = num === 0 ? 'green' : ROU.isRed(num) ? 'red' : 'black';
+    html += `<div class="rep-ball rball-${col}" onclick="showBallMenu(this,${num})">${num}</div>`;
+  }
+  html += `<div class="rep-add-btn" onclick="repAddBall()">+</div>`;
+  document.getElementById('repResults').innerHTML = html;
+};
+
+// ===========================
+// SNAPSHOT / BACKUP SYSTEM
+// ===========================
+function repTakeSnapshot() {
+  const snapshot = {
+    id: Date.now(),
+    timestamp: new Date().toLocaleString(),
+    session: currentSession || 'image3',
+    counts: JSON.parse(JSON.stringify(repCounts)),
+    results: [...repResults],
+    total: Object.values(repCounts).reduce((a,b) => a+b, 0)
+  };
+  
+  // Save to localStorage
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  snapshots.push(snapshot);
+  // Keep only last 50
+  if (snapshots.length > 50) snapshots = snapshots.slice(-50);
+  localStorage.setItem('roulette_snapshots', JSON.stringify(snapshots));
+  
+  // Also save as current state
+  localStorage.setItem('roulette_current_state', JSON.stringify(snapshot));
+  
+  repRefreshSnapshotList();
+  alert(`✅ Snapshot saved at ${snapshot.timestamp} (${snapshot.total} spins)`);
+}
+
+function repRefreshSnapshotList() {
+  const list = document.getElementById('repSnapshotList');
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  
+  if (snapshots.length === 0) {
+    list.innerHTML = '<div style="font-size:11px;color:var(--text-dim);padding:4px">No snapshots saved yet. Click 💾 Save to create one.</div>';
+    return;
+  }
+  
+  // Show newest first
+  snapshots = snapshots.reverse();
+  let html = '';
+  snapshots.forEach((s, i) => {
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;border-bottom:1px solid var(--border);font-size:11px">
+      <span>📸 <strong>${s.timestamp}</strong> · ${s.total} spins · ${s.session}</span>
+      <span style="display:flex;gap:4px">
+        <span style="cursor:pointer;color:var(--green);font-size:10px" onclick="repRestoreSnapshot(${i})">Restore</span>
+        <span style="cursor:pointer;color:var(--red-dim);font-size:10px" onclick="repDeleteSnapshot(${i})">✕</span>
+      </span>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function repShowSnapshots() {
+  repRefreshSnapshotList();
+  document.getElementById('repSnapshotViewer').style.display = 'block';
+}
+
+function repRestoreSnapshot(index) {
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  
+  // Need to reverse back since we displayed reversed
+  const s = snapshots[snapshots.length - 1 - index];
+  if (!s) return;
+  
+  showConfirm('Restore Snapshot', `Restore snapshot from ${s.timestamp}? Current data will be replaced.`, () => {
+    repCounts = JSON.parse(JSON.stringify(s.counts));
+    repResults = [...(s.results || [])];
+    
+    // Sync to main grid
+    const wheelType = document.getElementById('wheelType').value;
+    const nums = getWheelNumbers(wheelType);
+    const gridCounts = {};
+    nums.forEach(num => { gridCounts[String(num)] = repCounts[num] || 0; });
+    renderNumberGrid(gridCounts, wheelType);
+    document.getElementById('sampleSize').value = s.total;
+    
+    // Re-render
+    const sessionData = REP_SESSIONS[s.session] || REP_SESSIONS['image3'];
+    const red = Object.entries(repCounts).filter(([k]) => parseInt(k) !== 0 && ROU.isRed(parseInt(k))).reduce((a, [_,v]) => a+v, 0);
+    const black = Object.entries(repCounts).filter(([k]) => parseInt(k) !== 0 && !ROU.isRed(parseInt(k))).reduce((a, [_,v]) => a+v, 0);
+    const green = repCounts[0] || 0;
+    
+    document.getElementById('repRed').textContent = Math.round(red/s.total*100) + '%';
+    document.getElementById('repBlack').textContent = Math.round(black/s.total*100) + '%';
+    document.getElementById('repGreen').textContent = Math.round(green/s.total*100) + '%';
+    document.getElementById('repTotalLabel').textContent = s.total + ' spins';
+    
+    repRenderBoard();
+    repRenderResults();
+    onGridChange();
+    
+    document.getElementById('repSnapshotViewer').style.display = 'none';
+  });
+}
+
+function repDeleteSnapshot(index) {
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  snapshots.splice(snapshots.length - 1 - index, 1);
+  localStorage.setItem('roulette_snapshots', JSON.stringify(snapshots));
+  repRefreshSnapshotList();
+}
+
+// ===========================
+// IMAGE UPLOAD / OCR
+// ===========================
+function repShowUpload() {
+  document.getElementById('repUploadBar').style.display = 'block';
+  document.getElementById('repUploadInput').focus();
+}
+
+function repProcessUpload() {
+  const url = document.getElementById('repUploadInput').value.trim();
+  if (!url) { alert('Enter an image URL or file path'); return; }
+  
+  alert(`📸 OCR processing for: ${url}\n\nIn a future update, this will auto-extract:\n- RED/BLACK/EVEN/ODD/LOW/HIGH percentages\n- Per-number hit counts\n- Result sequence\n- Game/station info\n\nFor now, send the image through this chat and I'll process it manually.`);
+  
+  document.getElementById('repUploadBar').style.display = 'none';
+}
+
+// ===========================
+// AUTO-SAVE & REFRESH PROTECTION
+// ===========================
+let _repDirty = false;
+const _origRepLoadSession = repLoadSession;
+repLoadSession = function(name, btn) {
+  _origRepLoadSession(name, btn);
+  _repDirty = false;
+};
+
+// Track changes
+const _origRepOpenEdit = repOpenEdit;
+repOpenEdit = function(num) {
+  _origRepOpenEdit(num);
+  _repDirty = true;
+};
+
+// Auto-save every 30 seconds if dirty
+setInterval(() => {
+  if (_repDirty) {
+    repTakeSnapshot();
+    _repDirty = false;
+  }
+}, 30000);
+
+// Refresh protection
+window.addEventListener('beforeunload', (e) => {
+  if (_repDirty) {
+    repTakeSnapshot();
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes.';
+  }
+});
+
+// ===========================
+// PROBABILITY TRAJECTORY ENGINE
+// Mean-reverting probability framework — each number oscillates around 2.70%
+// Cold numbers have reversion margin, hot numbers revert downward
+
+const TRAJ_SEQUENCE = [20,24,25,16,35,12,21,8,0,10,13,18,29,14,21,7,31,17,35,33,27,0,16,18,15,23,17,22,10,11,10,28,16,24,14,2,29,30,11,19,12,11,0,33,14,6,36,31,24,14,5,15,22,14,13,27,25,23,19,2,21,2,3,0,10,0,23,11,19,15,15,19,35,6,20,2,15,22,4,13,12,3,31,10,13,20,23,36,0,7,2,20,21,23,7,22,30,26,13,7,22,30,13,23,7,22,30,26,13,10,4,27,6,29,23,15,5,28,4,28,12,16,9,32,26,32,26,7,19,4,32,22,28,35,18,5,11,24,19,7,11,25,28,18,16,14,14,25,1,17,13,9,12,29,25,36,15,30,2];
+const TRAJ_THEORY = 1/37;
+
+let trajRollingChartInst = null;
+let trajGapChartInst = null;
+
+function trajComputeCycles(seq) {
+  const cycles = [];
+  for (let i = 0; i < seq.length; i += 37) {
+    const spins = seq.slice(i, Math.min(i + 37, seq.length));
+    const freq = {};
+    spins.forEach(n => { freq[n] = (freq[n] || 0) + 1; });
+    cycles.push({ cycleNum: cycles.length + 1, spins, freq, total: spins.length });
+  }
+  return cycles;
+}
+
+function trajComputeRollingProb(seq, num, window) {
+  const data = [], counts = [];
+  let c = 0;
+  for (let i = 0; i < seq.length; i++) {
+    if (seq[i] === num) c++;
+    counts.push(c);
+    if (i >= window - 1) {
+      const start = i - window + 1;
+      data.push({ position: i + 1, prob: (counts[i] - (start > 0 ? counts[start - 1] : 0)) / window });
+    }
+  }
+  return data;
+}
+
+function trajComputeGap(rolling) { return rolling.map(d => ({ position: d.position, gap: d.prob - TRAJ_THEORY })); }
+
+function trajComputeExcursions(seq, num) {
+  let maxCold = 0, curCold = 0, maxHot = 0;
+  const counts = []; let running = 0;
+  for (let i = 0; i < seq.length; i++) {
+    if (seq[i] === num) { if (curCold > maxCold) maxCold = curCold; curCold = 0; }
+    else curCold++;
+    running += (seq[i] === num ? 1 : 0);
+    counts.push(running);
+    if (i >= 36) {
+      const start = i - 36;
+      const wc = counts[i] - (start > 0 ? counts[start - 1] : 0);
+      if (wc > maxHot) maxHot = wc;
+    }
+  }
+  if (curCold > maxCold) maxCold = curCold;
+  const rolling = trajComputeRollingProb(seq, num, 37);
+  const latest = rolling[rolling.length - 1];
+  const cg = Math.abs(latest.prob - TRAJ_THEORY);
+  let halfLife = 0;
+  for (let i = rolling.length - 1; i >= 0; i--) {
+    if (Math.abs(rolling[i].prob - TRAJ_THEORY) >= cg * 2) { halfLife = latest.position - rolling[i].position; break; }
+  }
+  return { maxColdStreak: maxCold, currentStreak: curCold, maxHotStreak: maxHot, halfLife };
+}
+
+function trajComputeAllGaps(seq, window) {
+  const gaps = {};
+  for (let n = 0; n <= 36; n++) { const r = trajComputeRollingProb(seq, n, window); gaps[n] = r.length ? r[r.length-1].prob - TRAJ_THEORY : 0; }
+  return gaps;
+}
+
+function trajRenderSignal(num, rolling, gapData, window, exc) {
+  const l = rolling[rolling.length-1], g = gapData[gapData.length-1];
+  const prob = l.prob, gap = g.gap;
+  let dir, sig, sc;
+  if (gap < -0.0135) { dir = '▼ COLD'; sig = '🟢 STRONG BUY — high reversion potential'; sc = 'var(--green-bright)'; }
+  else if (gap < -0.005) { dir = '▼ cool'; sig = '🟡 BUY — below mean, reversion expected'; sc = 'var(--gold)'; }
+  else if (gap > 0.0135) { dir = '▲ HOT'; sig = '🔴 STRONG SELL — likely to cool'; sc = 'var(--red)'; }
+  else if (gap > 0.005) { dir = '▲ warm'; sig = '🟠 SELL — above mean'; sc = '#f97316'; }
+  else { dir = '● NEUTRAL'; sig = '⚪ HOLD — near 2.70%'; sc = 'var(--text-dim)'; }
+  const nc = num === 0 ? 'var(--green-bright)' : (isRed(num) ? 'var(--red)' : '#94a3b8');
+  document.getElementById('trajSignal').innerHTML = `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+    <div style="font-size:28px;font-weight:700;color:${nc}">#${num}</div>
+    <div><div style="font-size:13px"><strong>Rolling P:</strong> ${(prob*100).toFixed(2)}% (${window} spins)</div>
+    <div style="font-size:13px"><strong>Gap:</strong> <span style="color:${gap<0?'var(--accent)':'var(--red)'};font-weight:600">${gap>0?'+':''}${(gap*100).toFixed(2)}pp</span> vs 2.70%</div>
+    <div style="font-size:12px;color:var(--text-dim)">${dir}</div></div>
+    <div style="flex:1;text-align:right"><div style="font-size:14px;font-weight:700;color:${sc}">${sig}</div></div></div>`;
+}
+
+function trajRenderRollingChart(rolling, num) {
+  const ctx = document.getElementById('trajRollingChart').getContext('2d');
+  if (trajRollingChartInst) trajRollingChartInst.destroy();
+  const lc = num === 0 ? '#10b981' : (isRed(num) ? '#dc2626' : '#94a3b8');
+  const fc = num === 0 ? 'rgba(5,150,105,0.2)' : (isRed(num) ? 'rgba(220,38,38,0.2)' : 'rgba(148,163,184,0.2)');
+  trajRollingChartInst = new Chart(ctx, {
+    type: 'line', data: { labels: rolling.map(d=>d.position), datasets: [
+      { label: `P(#${num})`, data: rolling.map(d=>d.prob*100), borderColor: lc, backgroundColor: fc, fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+      { label: '2.70%', data: rolling.map(()=>TRAJ_THEORY*100), borderColor: 'rgba(245,158,11,0.6)', borderDash: [6,4], borderWidth: 1.5, pointRadius: 0, fill: false }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8899aa', font: { size: 10 }, boxWidth: 12 } } },
+      scales: { x: { ticks: { color: '#556', font: { size: 9 }, maxTicksLimit: 8 }, grid: { color: 'rgba(30,48,68,0.3)' } },
+                y: { ticks: { color: '#556', font: { size: 9 }, callback: v=>v.toFixed(1)+'%' }, grid: { color: 'rgba(30,48,68,0.3)' } } }
+  });
+}
+
+function trajRenderGapChart(gapData) {
+  const ctx = document.getElementById('trajGapChart').getContext('2d');
+  if (trajGapChartInst) trajGapChartInst.destroy();
+  const gaps = gapData.map(d=>d.gap*100);
+  trajGapChartInst = new Chart(ctx, {
+    type: 'bar', data: { labels: gapData.map(d=>d.position), datasets: [{
+      data: gaps, backgroundColor: gaps.map(g=>g>=0?'rgba(220,38,38,0.6)':'rgba(59,130,246,0.6)'), borderWidth: 0, borderRadius: 2
+    }]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: '#556', font: { size: 9 }, maxTicksLimit: 8 }, grid: { display: false } },
+                y: { ticks: { color: '#556', font: { size: 9 }, callback: v=>(v>0?'+':'')+v.toFixed(1)+'pp' }, grid: { color: 'rgba(30,48,68,0.3)' } } }
+  });
+}
+
+function trajRenderCycleTable(cycles, num) {
+  let h = '<table style="font-size:11px"><tr><th>Cycle</th><th>Spins</th><th>Hits</th><th>%</th><th>Gap</th><th>Exp</th></tr>';
+  cycles.forEach(c => {
+    const hits = c.freq[num] || 0, gap = (hits/c.total-TRAJ_THEORY)*100;
+    h += `<tr><td>#${c.cycleNum}</td><td>${c.total}</td><td style="font-weight:700">${hits}</td>
+      <td>${(hits/c.total*100).toFixed(1)}%</td>
+      <td style="color:${gap>0.5?'var(--red)':(gap<-0.5?'var(--accent)':'var(--text-dim)')};font-weight:600">${gap>0?'+':''}${gap.toFixed(2)}pp</td>
+      <td style="color:var(--text-dim)">${(TRAJ_THEORY*c.total).toFixed(1)}</td></tr>`;
+  });
+  h += '</table>';
+  document.getElementById('trajCycleTable').innerHTML = h;
+}
+
+function trajRenderExcursion(e) {
+  document.getElementById('trajExcursion').innerHTML = `
+    <div class="card stat-card" style="padding:10px"><div class="stat-value" style="font-size:20px;color:var(--accent)">${e.maxColdStreak}</div><div class="stat-label">Max Cold Streak</div></div>
+    <div class="card stat-card" style="padding:10px"><div class="stat-value" style="font-size:20px;color:var(--gold)">${e.currentStreak}</div><div class="stat-label">Current Streak</div></div>
+    <div class="card stat-card" style="padding:10px"><div class="stat-value" style="font-size:20px;color:var(--red)">${e.maxHotStreak}</div><div class="stat-label">Max Hits/37-spin</div></div>
+    <div class="card stat-card" style="padding:10px"><div class="stat-value" style="font-size:20px;color:var(--purple)">${e.halfLife||'∞'}</div><div class="stat-label">Half-Life (spins)</div></div>`;
+}
+
+function trajRenderHeatmap(allGaps) {
+  let h = '<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:2px">';
+  for (let n = 0; n <= 36; n++) {
+    const gap = allGaps[n], gp = (gap*100).toFixed(2);
+    let bg, tc;
+    if (gap > 0.01) { const i = Math.min(Math.abs(gap)/0.03, 1); bg = `rgba(220,38,38,${0.15+i*0.4})`; tc = 'var(--red)'; }
+    else if (gap < -0.01) { const i = Math.min(Math.abs(gap)/0.03, 1); bg = `rgba(59,130,246,${0.15+i*0.4})`; tc = 'var(--accent)'; }
+    else { bg = 'var(--surface2)'; tc = 'var(--text-dim)'; }
+    const cc = n === 0 ? 'var(--green-bright)' : (isRed(n) ? 'var(--red)' : '#94a3b8');
+    h += `<div style="background:${bg};padding:4px 2px;text-align:center;border-radius:3px;font-size:10px"><div style="font-weight:600;color:${cc}">${n}</div><div style="color:${tc};font-size:9px">${gap>0?'+':''}${gp}pp</div></div>`;
+  }
+  h += '</div>';
+  document.getElementById('trajHeatmap').innerHTML = h;
+}
+
+function updateTrajectory() {
+  const num = parseInt(document.getElementById('trajNumber').value);
+  const w = parseInt(document.getElementById('trajWindow').value);
+  const rolling = trajComputeRollingProb(TRAJ_SEQUENCE, num, w);
+  const gapData = trajComputeGap(rolling);
+  trajRenderSignal(num, rolling, gapData, w, trajComputeExcursions(TRAJ_SEQUENCE, num));
+  trajRenderRollingChart(rolling, num);
+  trajRenderGapChart(gapData);
+  trajRenderCycleTable(trajComputeCycles(TRAJ_SEQUENCE), num);
+  trajRenderExcursion(trajComputeExcursions(TRAJ_SEQUENCE, num));
+  trajRenderHeatmap(trajComputeAllGaps(TRAJ_SEQUENCE, w));
+}
+
+function initTrajectoryEngine() {
+  const sel = document.getElementById('trajNumber');
+  for (let n = 0; n <= 36; n++) { const o = document.createElement('option'); o.value = n; o.textContent = n; if (n === 0) o.selected = true; sel.appendChild(o); }
+  updateTrajectory();
+}
+document.addEventListener('DOMContentLoaded', () => setTimeout(initTrajectoryEngine, 500));
+
+// ===========================
+// RNG INTEGRITY TESTS — Zuum Terminal
+// Statistical tests to distinguish H₀ (random) from H₁ (algorithmic)
+// Uses the same TRAJ_SEQUENCE; shares TRAJ_THEORY
+// ===========================
+
+let rngDistChartInst = null;
+let rngZeroChartInst = null;
+
+function rngComputeCycles(seq, size = 37) {
+  const cycles = [];
+  for (let i = 0; i < seq.length; i += size) {
+    const spins = seq.slice(i, Math.min(i + size, seq.length));
+    const freq = {};
+    spins.forEach(n => { freq[n] = (freq[n] || 0) + 1; });
+    cycles.push({ cycle: cycles.length + 1, spins: spins.length, freq });
+  }
+  return cycles;
+}
+
+function rngPerNumberHits(seq, size = 37) {
+  const cycles = rngComputeCycles(seq, size);
+  const hits = {};
+  for (let n = 0; n <= 36; n++) {
+    hits[n] = cycles.map(c => {
+      const h = c.freq[n] || 0;
+      return c.spins < size ? h * size / c.spins : h;
+    });
+  }
+  return { cycles, hits };
+}
+
+function rngTrend(series) {
+  const n = series.length;
+  if (n < 2) return 0;
+  const xm = (n - 1) / 2, ym = series.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (i - xm) * (series[i] - ym); den += (i - xm) ** 2; }
+  return den ? num / den : 0;
+}
+
+function rngRunsZ(series, median) {
+  const above = series.filter(x => x !== median).map(x => x > median ? 1 : 0);
+  if (above.length < 2) return 0;
+  let runs = 1;
+  for (let i = 1; i < above.length; i++) if (above[i] !== above[i - 1]) runs++;
+  const n1 = above.filter(x => x === 1).length, n2 = above.length - n1;
+  if (n1 * n2 === 0) return 0;
+  const expRuns = 2 * n1 * n2 / (n1 + n2) + 1;
+  const stdRuns = Math.sqrt(2 * n1 * n2 * (2 * n1 * n2 - n1 - n2) / ((n1 + n2) ** 2 * (n1 + n2 - 1)));
+  return stdRuns ? (runs - expRuns) / stdRuns : 0;
+}
+
+function rngAutocorr(series, lag = 1) {
+  const n = series.length;
+  if (n <= lag) return 0;
+  const mean = series.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) den += (series[i] - mean) ** 2;
+  for (let i = 0; i < n - lag; i++) num += (series[i] - mean) * (series[i + lag] - mean);
+  return den ? num / den : 0;
+}
+
+function rngChiSquared(allHits) {
+  // Test against Poisson(λ=1)
+  const counts = {};
+  allHits.forEach(h => { const k = Math.min(h, 5); counts[k] = (counts[k] || 0) + 1; });
+  const total = allHits.length;
+  let chi2 = 0;
+  for (let k = 0; k <= 5; k++) {
+    const obs = counts[k] || 0;
+    const exp = total * (Math.exp(-1) * 1 ** k / factorial(k));
+    if (exp > 0) chi2 += (obs - exp) ** 2 / exp;
+  }
+  return { chi2, df: 5, ratio: chi2 / 5 };
+}
+
+function factorial(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+
+function initRNGTests() {
+  const { cycles, hits } = rngPerNumberHits(TRAJ_SEQUENCE);
+  const fullCycles = cycles.filter(c => c.spins === 37);
+  const allHits = [];
+  fullCycles.forEach(c => { for (let n = 0; n <= 36; n++) allHits.push(c.freq[n] || 0); });
+  
+  // --- Stats ---
+  const meanHits = allHits.reduce((a, b) => a + b, 0) / allHits.length;
+  const variance = allHits.reduce((s, h) => s + (h - meanHits) ** 2, 0) / (allHits.length - 1);
+  const dispersion = variance / meanHits;
+  const chi2 = rngChiSquared(allHits);
+  
+  // Lag-1 autocorrelation across all numbers
+  const acorrs = [];
+  for (let n = 0; n <= 36; n++) {
+    const raw = fullCycles.map(c => c.freq[n] || 0);
+    if (raw.length >= 2) acorrs.push(rngAutocorr(raw));
+  }
+  const meanAC = acorrs.reduce((a, b) => a + b, 0) / acorrs.length;
+  
+  // Zero trend
+  const zeroHits = hits[0].slice(0, fullCycles.length);
+  const zeroTrend = rngTrend(zeroHits);
+  const zeroRuns = rngRunsZ(zeroHits, 1.0);
+  
+  document.getElementById('rngSummaryLabel').textContent = 
+    `${TRAJ_SEQUENCE.length} spins · ${fullCycles.length} full cycles · χ²/df=${chi2.ratio.toFixed(2)} · AC=${meanAC.toFixed(3)}`;
+  
+  // --- Render stats ---
+  let verdict = chi2.ratio < 1.5 ? '✅ Random' : chi2.ratio < 2.0 ? '⚠️ Marginal' : '❌ Non-random';
+  let acVerdict = Math.abs(meanAC) < 0.1 ? '⚪ None' : meanAC < -0.15 ? '⚠️ Mean-reverting' : meanAC > 0.15 ? '⚠️ Momentum' : '⚪ Weak';
+  let dispVerdict = dispersion > 0.7 && dispersion < 1.3 ? '✅ Poisson' : '⚠️ Skewed';
+  
+  document.getElementById('rngStats').innerHTML = `
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:${chi2.ratio < 1.5 ? 'var(--green-bright)' : 'var(--gold)'}">${chi2.ratio.toFixed(2)}</div>
+      <div class="stat-label">χ²/df — ${verdict}</div>
+    </div>
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:${Math.abs(meanAC) < 0.1 ? 'var(--text-dim)' : (meanAC < 0 ? 'var(--accent)' : 'var(--red)')}">${meanAC.toFixed(3)}</div>
+      <div class="stat-label">Autocorr — ${acVerdict}</div>
+    </div>
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:${dispersion > 0.7 && dispersion < 1.3 ? 'var(--green-bright)' : 'var(--gold)'}">${dispersion.toFixed(2)}</div>
+      <div class="stat-label">Dispersion — ${dispVerdict}</div>
+    </div>
+    <div class="card stat-card" style="padding:10px">
+      <div class="stat-value" style="font-size:18px;color:var(--purple)">${zeroTrend.toFixed(2)}</div>
+      <div class="stat-label">Zero Trend/cycle</div>
+    </div>`;
+  
+  // --- Stock table ---
+  let tableHtml = '<table style="font-size:10px"><tr><th>#</th>';
+  cycles.forEach(c => { tableHtml += `<th>C${c.cycle}</th>`; });
+  tableHtml += '<th>Trend</th><th>Signal</th></tr>';
+  
+  for (let n = 0; n <= 36; n++) {
+    const h = hits[n];
+    const raw = fullCycles.map(c => c.freq[n] || 0);
+    const t = rngTrend(raw);
+    let trendStr = t > 0.1 ? '↑' : t < -0.1 ? '↓' : '→';
+    let sig;
+    if (t < -0.15 && h[h.length - 1] < 0.5) sig = '🟢 BUY';
+    else if (t > 0.15 && h[h.length - 1] > 1.5) sig = '🔴 SELL';
+    else if (t < -0.1) sig = '🟡 cool';
+    else if (t > 0.1) sig = '🟠 heat';
+    else sig = '⚪';
+    
+    tableHtml += '<tr>';
+    const nc = n === 0 ? 'var(--green-bright)' : (isRed(n) ? 'var(--red)' : '#94a3b8');
+    tableHtml += `<td style="color:${nc};font-weight:700">${n}</td>`;
+    h.forEach(v => { tableHtml += `<td>${v.toFixed(1)}</td>`; });
+    tableHtml += `<td style="color:${t<0?'var(--accent)':t>0?'var(--red)':'var(--text-dim)'}">${trendStr} ${Math.abs(t).toFixed(2)}</td>`;
+    tableHtml += `<td>${sig}</td></tr>`;
+  }
+  tableHtml += '</table>';
+  document.getElementById('rngStockTable').innerHTML = tableHtml;
+  
+  // --- Distribution chart ---
+  const counts = {};
+  allHits.forEach(h => { const k = Math.min(h, 5); counts[k] = (counts[k] || 0) + 1; });
+  const ctx1 = document.getElementById('rngDistChart').getContext('2d');
+  if (rngDistChartInst) rngDistChartInst.destroy();
+  const totalObs = allHits.length;
+  rngDistChartInst = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: ['0','1','2','3','4','5+'],
+      datasets: [
+        { label: 'Observed', data: [0,1,2,3,4,5].map(k => counts[k] || 0), backgroundColor: 'rgba(59,130,246,0.6)', borderWidth: 0, borderRadius: 3 },
+        { label: 'Poisson(λ=1)', data: [0,1,2,3,4,5].map(k => totalObs * Math.exp(-1) * 1**k / factorial(k)), backgroundColor: 'rgba(245,158,11,0.3)', borderColor: 'rgba(245,158,11,0.8)', borderWidth: 1, type: 'line', pointRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8899aa', font: { size: 10 }, boxWidth: 12 } } },
+      scales: { x: { ticks: { color: '#556', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#556', font: { size: 9 } }, grid: { color: 'rgba(30,48,68,0.3)' } } }
+    }
+  });
+  
+  // --- Zero trend chart ---
+  const ctx2 = document.getElementById('rngZeroChart').getContext('2d');
+  if (rngZeroChartInst) rngZeroChartInst.destroy();
+  rngZeroChartInst = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: fullCycles.map(c => `C${c.cycle}`),
+      datasets: [
+        { label: 'Zero hits', data: zeroHits, borderColor: '#10b981', backgroundColor: 'rgba(5,150,105,0.15)', fill: true, tension: 0.2, pointRadius: 5, pointBackgroundColor: '#10b981', borderWidth: 2.5 },
+        { label: 'Expected (1.0)', data: zeroHits.map(() => 1), borderColor: 'rgba(245,158,11,0.6)', borderDash: [6,4], borderWidth: 1.5, pointRadius: 0, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8899aa', font: { size: 10 }, boxWidth: 12 } } },
+      scales: { x: { ticks: { color: '#556', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#556', font: { size: 9 }, stepSize: 1 }, grid: { color: 'rgba(30,48,68,0.3)' }, min: 0 } }
+    }
+  });
+}
+
+// Extend init to also bootstrap RNG tests
+const _origInitTraj = initTrajectoryEngine;
+initTrajectoryEngine = function() {
+  _origInitTraj();
+  initRNGTests();
+};
+</script>
+</body>
+</html>
