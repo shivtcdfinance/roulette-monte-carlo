@@ -460,28 +460,57 @@ textarea:focus { outline: none; border-color: var(--accent); }
 <!-- RIGHT: Results -->
 <div>
 
-  <!-- ===== DASHBOARD REPLICA ===== -->
-  <div class="card mb-12" id="replicaCard">
-    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+  <!-- ===== DASHBOARD REPLICA ===== (MOVED TO TOP) -->
+  <div class="card mb-12" id="replicaCard" style="border-color:var(--gold)">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
       <span>🎰 Dashboard Replica</span>
-      <span style="font-size:11px;color:var(--text-dim);display:flex;gap:8px;align-items:center">
-        <span id="repTotalLabel">100 spins</span>
-        <span id="repGameLabel" style="color:var(--gold)">GAME 980</span>
+      <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--text-dim)" id="repTotalLabel">100 spins</span>
+        <span style="font-size:10px;color:var(--gold)" id="repGameLabel">GAME 980</span>
+        <button class="preset-btn" onclick="repTakeSnapshot()" style="font-size:10px;padding:2px 8px" title="Save current state">💾 Save</button>
+        <button class="preset-btn" onclick="repShowSnapshots()" style="font-size:10px;padding:2px 8px" title="View saved backups">📂 History</button>
       </span>
     </div>
 
-    <!-- Session Row -->
-    <div style="background:var(--surface2);border-radius:8px;padding:6px 10px;margin-bottom:10px;border:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:10px;color:var(--text-dim);font-weight:500">📂</span>
-      <button class="preset-btn" onclick="repLoadSession('image1',this)">Img1 R51</button>
-      <button class="preset-btn" onclick="repLoadSession('image2',this)">Img2 B56</button>
-      <button class="preset-btn active" onclick="repLoadSession('image3',this)">Img3 B52</button>
-      <button class="preset-btn" onclick="repLoadSession('combined',this)">Combined</button>
+    <!-- Session Row + Upload -->
+    <div style="background:var(--surface2);border-radius:8px;padding:6px 10px;margin-bottom:8px;border:1px solid var(--border)">
+      <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+        <span style="font-size:10px;color:var(--text-dim);font-weight:500">📂</span>
+        <button class="preset-btn" onclick="repLoadSession('image1',this)">Img1 R51</button>
+        <button class="preset-btn" onclick="repLoadSession('image2',this)">Img2 B56</button>
+        <button class="preset-btn active" onclick="repLoadSession('image3',this)">Img3 B52</button>
+        <button class="preset-btn" onclick="repLoadSession('combined',this)">Combined</button>
+        <span style="flex:1"></span>
+        <button class="preset-btn" onclick="repShowUpload()" style="font-size:10px;padding:2px 8px;border-color:var(--accent)">📸 Upload</button>
+      </div>
+      <!-- Image Upload Bar (hidden by default) -->
+      <div id="repUploadBar" style="display:none;margin-top:4px;padding:6px;background:var(--panel);border-radius:6px;border:1px dashed var(--accent)">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="repUploadInput" placeholder="Paste image URL or file path..." 
+            style="flex:1;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px">
+          <button class="btn btn-outline" onclick="repProcessUpload()" style="font-size:11px;padding:4px 12px">Analyze</button>
+          <button class="btn btn-outline" onclick="document.getElementById('repUploadBar').style.display='none'" style="font-size:11px;padding:4px 8px">✕</button>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Paste an image URL or drag an image file — I'll OCR-extract all visible stats</div>
+      </div>
+      <!-- Snapshot Viewer (hidden by default) -->
+      <div id="repSnapshotViewer" style="display:none;margin-top:4px;padding:6px;background:var(--panel);border-radius:6px;border:1px solid var(--gold);max-height:200px;overflow-y:auto">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">📂 Saved Snapshots <span style="float:right;cursor:pointer;color:var(--accent);font-size:10px" onclick="document.getElementById('repSnapshotViewer').style.display='none'">✕ close</span></div>
+        <div id="repSnapshotList"></div>
+      </div>
     </div>
 
-    <!-- Results Strip -->
-    <div class="rep-results" id="repResults"></div>
-    <div style="font-size:9px;color:var(--text-dim);margin:4px 0 8px 0">Tap ball to remove · <span style="cursor:pointer;color:var(--accent)" onclick="repAddBall()">+ add ball</span> · <span style="cursor:pointer;color:var(--green)" onclick="repRegenerate()">⟳ regenerate from counts</span></div>
+    <!-- Results Strip (READ-ONLY — safe click shows popup) -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="font-size:9px;color:var(--text-dim);white-space:nowrap">LAST 100:</span>
+      <div class="rep-results" id="repResults" style="flex:1"></div>
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);margin:0 0 8px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <span>🖱️ Click ball → <strong>options menu</strong> (safe — no auto-delete)</span>
+      <span style="cursor:pointer;color:var(--accent)" onclick="repAddBall()">+ add ball</span>
+      <span style="cursor:pointer;color:var(--green)" onclick="repRegenerate()">⟳ regenerate</span>
+      <span id="repUndoBtn" style="cursor:pointer;color:var(--gold);display:none" onclick="repUndoLast()">↩ undo remove</span>
+    </div>
 
     <!-- Replica Board -->
     <div class="replica-board">
@@ -518,7 +547,34 @@ textarea:focus { outline: none; border-color: var(--accent); }
     </div>
   </div>
 
-  <!-- ===== BAYESIAN ANALYSIS — TOP (CONFIDENCE FIRST) ===== -->
+  <!-- BALL POPUP MODAL (safe, shows options) -->
+  <div id="ballMenuModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:24px;max-width:320px;width:90%;text-align:center">
+      <div style="font-size:24px;font-weight:700;margin-bottom:6px" id="ballMenuNum">#0</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px" id="ballMenuInfo">Hit count: 0 · Bayesian P: 0%</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-outline" onclick="ballMenuAction('edit')" style="width:100%;font-size:13px">✏️ Edit count for this number</button>
+        <button class="btn btn-outline" onclick="ballMenuAction('hot')" style="width:100%;font-size:13px">🔥 Mark as hot / highlight</button>
+        <button class="btn btn-outline" onclick="ballMenuAction('remove')" style="width:100%;font-size:13px;border-color:var(--red-dim)">🗑️ Remove from sequence</button>
+        <button class="btn btn-outline" onclick="ballMenuAction('view')" style="width:100%;font-size:13px">📊 View in Bayesian table</button>
+      </div>
+      <button class="btn btn-outline" onclick="closeBallMenu()" style="margin-top:10px;width:100%;font-size:12px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CONFIRM DIALOG -->
+  <div id="confirmDialog" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:210;align-items:center;justify-content:center">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:300px;width:90%;text-align:center">
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px" id="confirmTitle">Confirm</div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px" id="confirmMsg">Are you sure?</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="confirmAction(true)" style="flex:1;font-size:13px;border-color:var(--red)">Yes</button>
+        <button class="btn btn-outline" onclick="confirmAction(false)" style="flex:1;font-size:13px">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOP STATS ===== -->
   <div class="card mb-12" id="bayesCard">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
       <span>🧮 Bayesian Per-Number Analysis</span>
@@ -2137,6 +2193,269 @@ function repUpdateAggregates() {
 // Init replica on page load
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => repLoadSession('image3', document.querySelector('#replicaCard .preset-btn.active')), 100);
+  repRefreshSnapshotList();
+  // Auto-save check on page load
+  const saved = localStorage.getItem('roulette_current_state');
+  if (saved) {
+    console.log('📦 Found saved state from ' + JSON.parse(saved).timestamp);
+  }
+});
+
+// ===========================
+// SAFE BALL MENU
+// ===========================
+let _ballMenuNum = null;
+let _ballMenuEl = null;
+let _repTrash = [];
+let _confirmCallback = null;
+
+function showBallMenu(el, num) {
+  _ballMenuNum = num;
+  _ballMenuEl = el;
+  
+  document.getElementById('ballMenuNum').textContent = `#${num} ${num === 0 ? '🟢' : ROU.isRed(num) ? '🔴' : '⚫'}`;
+  
+  // Get current info
+  const count = repCounts[num] || 0;
+  const total = Object.values(repCounts).reduce((a,b) => a+b, 0) || 100;
+  const bayesP = (1 + count) / (37 + total);
+  document.getElementById('ballMenuInfo').textContent = `Hit count: ${count} · Bayesian P: ${(bayesP*100).toFixed(2)}%`;
+  
+  document.getElementById('ballMenuModal').style.display = 'flex';
+}
+
+function closeBallMenu() {
+  document.getElementById('ballMenuModal').style.display = 'none';
+  _ballMenuNum = null;
+  _ballMenuEl = null;
+}
+
+function ballMenuAction(action) {
+  const num = _ballMenuNum;
+  closeBallMenu();
+  
+  if (action === 'edit') {
+    repOpenEdit(num);
+  } else if (action === 'hot') {
+    // Highlight the number in all views
+    alert(`🔥 #${num} marked as hot! (highlighting will be added in next update)`);
+  } else if (action === 'remove') {
+    // Show confirmation dialog
+    showConfirm('Remove from sequence', `Remove one instance of #${num} from the results?`, () => {
+      // Find and remove ONE instance
+      const idx = repResults.indexOf(num);
+      if (idx !== -1) {
+        const removed = repResults.splice(idx, 1)[0];
+        _repTrash.push(removed);
+        repRenderResults();
+        document.getElementById('repUndoBtn').style.display = 'inline';
+      }
+    });
+  } else if (action === 'view') {
+    // Scroll to Bayesian table and sort by this number
+    document.getElementById('bayesSort').value = 'number';
+    renderBayesianTable();
+    document.getElementById('bayesCard').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  _confirmCallback = callback;
+  document.getElementById('confirmDialog').style.display = 'flex';
+}
+
+function confirmAction(confirmed) {
+  document.getElementById('confirmDialog').style.display = 'none';
+  if (confirmed && _confirmCallback) {
+    _confirmCallback();
+    _confirmCallback = null;
+  }
+}
+
+function repUndoLast() {
+  if (_repTrash.length === 0) return;
+  const restored = _repTrash.pop();
+  repResults.push(restored);
+  repRenderResults();
+  if (_repTrash.length === 0) document.getElementById('repUndoBtn').style.display = 'none';
+}
+
+// Override repRenderResults to use safe click handler
+const _origRepRenderResults = repRenderResults;
+repRenderResults = function() {
+  let html = '';
+  for (const num of repResults) {
+    const col = num === 0 ? 'green' : ROU.isRed(num) ? 'red' : 'black';
+    html += `<div class="rep-ball rball-${col}" onclick="showBallMenu(this,${num})">${num}</div>`;
+  }
+  html += `<div class="rep-add-btn" onclick="repAddBall()">+</div>`;
+  document.getElementById('repResults').innerHTML = html;
+};
+
+// ===========================
+// SNAPSHOT / BACKUP SYSTEM
+// ===========================
+function repTakeSnapshot() {
+  const snapshot = {
+    id: Date.now(),
+    timestamp: new Date().toLocaleString(),
+    session: currentSession || 'image3',
+    counts: JSON.parse(JSON.stringify(repCounts)),
+    results: [...repResults],
+    total: Object.values(repCounts).reduce((a,b) => a+b, 0)
+  };
+  
+  // Save to localStorage
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  snapshots.push(snapshot);
+  // Keep only last 50
+  if (snapshots.length > 50) snapshots = snapshots.slice(-50);
+  localStorage.setItem('roulette_snapshots', JSON.stringify(snapshots));
+  
+  // Also save as current state
+  localStorage.setItem('roulette_current_state', JSON.stringify(snapshot));
+  
+  repRefreshSnapshotList();
+  alert(`✅ Snapshot saved at ${snapshot.timestamp} (${snapshot.total} spins)`);
+}
+
+function repRefreshSnapshotList() {
+  const list = document.getElementById('repSnapshotList');
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  
+  if (snapshots.length === 0) {
+    list.innerHTML = '<div style="font-size:11px;color:var(--text-dim);padding:4px">No snapshots saved yet. Click 💾 Save to create one.</div>';
+    return;
+  }
+  
+  // Show newest first
+  snapshots = snapshots.reverse();
+  let html = '';
+  snapshots.forEach((s, i) => {
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px;border-bottom:1px solid var(--border);font-size:11px">
+      <span>📸 <strong>${s.timestamp}</strong> · ${s.total} spins · ${s.session}</span>
+      <span style="display:flex;gap:4px">
+        <span style="cursor:pointer;color:var(--green);font-size:10px" onclick="repRestoreSnapshot(${i})">Restore</span>
+        <span style="cursor:pointer;color:var(--red-dim);font-size:10px" onclick="repDeleteSnapshot(${i})">✕</span>
+      </span>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function repShowSnapshots() {
+  repRefreshSnapshotList();
+  document.getElementById('repSnapshotViewer').style.display = 'block';
+}
+
+function repRestoreSnapshot(index) {
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  
+  // Need to reverse back since we displayed reversed
+  const s = snapshots[snapshots.length - 1 - index];
+  if (!s) return;
+  
+  showConfirm('Restore Snapshot', `Restore snapshot from ${s.timestamp}? Current data will be replaced.`, () => {
+    repCounts = JSON.parse(JSON.stringify(s.counts));
+    repResults = [...(s.results || [])];
+    
+    // Sync to main grid
+    const wheelType = document.getElementById('wheelType').value;
+    const nums = getWheelNumbers(wheelType);
+    const gridCounts = {};
+    nums.forEach(num => { gridCounts[String(num)] = repCounts[num] || 0; });
+    renderNumberGrid(gridCounts, wheelType);
+    document.getElementById('sampleSize').value = s.total;
+    
+    // Re-render
+    const sessionData = REP_SESSIONS[s.session] || REP_SESSIONS['image3'];
+    const red = Object.entries(repCounts).filter(([k]) => parseInt(k) !== 0 && ROU.isRed(parseInt(k))).reduce((a, [_,v]) => a+v, 0);
+    const black = Object.entries(repCounts).filter(([k]) => parseInt(k) !== 0 && !ROU.isRed(parseInt(k))).reduce((a, [_,v]) => a+v, 0);
+    const green = repCounts[0] || 0;
+    
+    document.getElementById('repRed').textContent = Math.round(red/s.total*100) + '%';
+    document.getElementById('repBlack').textContent = Math.round(black/s.total*100) + '%';
+    document.getElementById('repGreen').textContent = Math.round(green/s.total*100) + '%';
+    document.getElementById('repTotalLabel').textContent = s.total + ' spins';
+    
+    repRenderBoard();
+    repRenderResults();
+    onGridChange();
+    
+    document.getElementById('repSnapshotViewer').style.display = 'none';
+  });
+}
+
+function repDeleteSnapshot(index) {
+  let snapshots = [];
+  try {
+    snapshots = JSON.parse(localStorage.getItem('roulette_snapshots') || '[]');
+  } catch(e) {}
+  snapshots.splice(snapshots.length - 1 - index, 1);
+  localStorage.setItem('roulette_snapshots', JSON.stringify(snapshots));
+  repRefreshSnapshotList();
+}
+
+// ===========================
+// IMAGE UPLOAD / OCR
+// ===========================
+function repShowUpload() {
+  document.getElementById('repUploadBar').style.display = 'block';
+  document.getElementById('repUploadInput').focus();
+}
+
+function repProcessUpload() {
+  const url = document.getElementById('repUploadInput').value.trim();
+  if (!url) { alert('Enter an image URL or file path'); return; }
+  
+  alert(`📸 OCR processing for: ${url}\n\nIn a future update, this will auto-extract:\n- RED/BLACK/EVEN/ODD/LOW/HIGH percentages\n- Per-number hit counts\n- Result sequence\n- Game/station info\n\nFor now, send the image through this chat and I'll process it manually.`);
+  
+  document.getElementById('repUploadBar').style.display = 'none';
+}
+
+// ===========================
+// AUTO-SAVE & REFRESH PROTECTION
+// ===========================
+let _repDirty = false;
+const _origRepLoadSession = repLoadSession;
+repLoadSession = function(name, btn) {
+  _origRepLoadSession(name, btn);
+  _repDirty = false;
+};
+
+// Track changes
+const _origRepOpenEdit = repOpenEdit;
+repOpenEdit = function(num) {
+  _origRepOpenEdit(num);
+  _repDirty = true;
+};
+
+// Auto-save every 30 seconds if dirty
+setInterval(() => {
+  if (_repDirty) {
+    repTakeSnapshot();
+    _repDirty = false;
+  }
+}, 30000);
+
+// Refresh protection
+window.addEventListener('beforeunload', (e) => {
+  if (_repDirty) {
+    repTakeSnapshot();
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes.';
+  }
 });
 </script>
 </body>
